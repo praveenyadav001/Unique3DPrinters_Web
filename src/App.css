@@ -1,0 +1,106 @@
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    top: -10%;
+  }
+  100% {
+    top: 110%;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.glitch-text::before {
+  color: #00E5FF;
+  clip: rect(0, 900px, 0, 0);
+  animation: glitch1 0.15s linear;
+}
+
+.glitch-text::after {
+  color: #FF5C00;
+  clip: rect(0, 900px, 0, 0);
+  animation: glitch2 0.15s linear;
+}
+
+@keyframes glitch1 {
+  0% {
+    clip: rect(20px, 9999px, 40px, 0);
+    transform: translate(-4px);
+  }
+  50% {
+    clip: rect(60px, 9999px, 80px, 0);
+    transform: translate(4px);
+  }
+  100% {
+    clip: rect(0, 9999px, 0, 0);
+  }
+}
+
+@keyframes glitch2 {
+  0% {
+    clip: rect(50px, 9999px, 70px, 0);
+    transform: translate(4px);
+  }
+  50% {
+    clip: rect(10px, 9999px, 30px, 0);
+    transform: translate(-4px);
+  }
+  100% {
+    clip: rect(0, 9999px, 0, 0);
+  }
+}
+
+.hero-badge {
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+
+.hero-title {
+  animation: fadeUp 0.8s ease 0.4s both;
+}
+
+.hero-sub {
+  animation: fadeUp 0.8s ease 0.6s both;
+}
+
+.hero-ctas {
+  animation: fadeUp 0.8s ease 0.8s both;
+}
+
+.hero-3d {
+  animation: float 4s ease-in-out infinite;
+}
