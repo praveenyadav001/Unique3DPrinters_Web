@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
+import { RadialOrbitalTimelineDemo } from "@/components/ui/demo";
 
 const NAV_LINKS = ["Services", "Gallery", "Process", "Pricing", "Contact"];
 
@@ -21,13 +22,6 @@ const GALLERY = [
   { label: "Jewelry Mold", mat: "Castable Resin", color: "#00E5FF", h: 210 },
 ];
 
-const STEPS = [
-  { n: "01", title: "Upload & Consult", desc: "Send your STL/OBJ file or sketch. We review and advise on material, scale, and finish." },
-  { n: "02", title: "Slice & Optimize", desc: "Our engineers slice the model, optimize supports, and run pre-flight checks." },
-  { n: "03", title: "Print & Inspect", desc: "Multi-machine printing with real-time monitoring. Every layer checked." },
-  { n: "04", title: "Finish & Ship", desc: "Post-processing, quality photos sent to you. Shipped worldwide in secure packaging." },
-];
-
 const PLANS = [
   { name: "Maker", price: "₹499", per: "per item", feats: ["Up to 10×10×10 cm", "PLA / PETG only", "48hr turnaround", "1 revision"], accent: false },
   { name: "Pro", price: "₹1,299", per: "per item", feats: ["Up to 20×20×20 cm", "All materials", "24hr turnaround", "3 revisions", "Post-processing"], accent: true },
@@ -41,13 +35,13 @@ const STATS = [
   { val: 15, label: "Materials Available", suffix: "" },
 ];
 
-function useCountUp(target, duration = 1800, start = false) {
+function useCountUp(target: number, duration: number = 1800, start: boolean = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     if (!start) return;
-    let raf;
+    let raf: number;
     const startTime = performance.now();
-    const tick = (now) => {
+    const tick = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 3);
       setCount(Math.round(ease * target));
@@ -59,7 +53,14 @@ function useCountUp(target, duration = 1800, start = false) {
   return count;
 }
 
-function StatCard({ val, label, suffix, trigger }) {
+interface StatCardProps {
+  val: number;
+  label: string;
+  suffix: string;
+  trigger: boolean;
+}
+
+function StatCard({ val, label, suffix, trigger }: StatCardProps) {
   const count = useCountUp(val, 1800, trigger);
   return (
     <div style={{ textAlign: "center" }}>
@@ -71,15 +72,22 @@ function StatCard({ val, label, suffix, trigger }) {
   );
 }
 
-function TiltCard({ children, style }) {
-  const ref = useRef(null);
-  const handleMove = (e) => {
+interface TiltCardProps {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}
+
+function TiltCard({ children, style }: TiltCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
     const y = ((e.clientY - rect.top) / rect.height - 0.5) * -20;
     ref.current.style.transform = `perspective(600px) rotateX(${y}deg) rotateY(${x}deg) scale(1.04)`;
   };
   const handleLeave = () => {
+    if (!ref.current) return;
     ref.current.style.transform = "perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)";
   };
   return (
@@ -96,7 +104,7 @@ function Printer3D() {
     const id = setInterval(() => setAngle(a => (a + 0.5) % 360), 16);
     return () => clearInterval(id);
   }, []);
-  const rad = (a) => (a * Math.PI) / 180;
+  const rad = (a: number) => (a * Math.PI) / 180;
   const r = 80;
   const points = 8;
   const hexPoints = Array.from({ length: points }, (_, i) => {
@@ -137,7 +145,11 @@ function Printer3D() {
   );
 }
 
-function NavBar({ active }) {
+interface NavBarProps {
+  active?: string;
+}
+
+function NavBar({ active }: NavBarProps) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -165,8 +177,8 @@ function NavBar({ active }) {
               transition: "color 0.2s",
               fontFamily: "'Rajdhani', sans-serif", fontWeight: 600,
             }}
-              onMouseEnter={e => e.target.style.color = "#FF5C00"}
-              onMouseLeave={e => e.target.style.color = active === l ? "#FF5C00" : "#aaa"}
+              onMouseEnter={e => (e.target as HTMLAnchorElement).style.color = "#FF5C00"}
+              onMouseLeave={e => (e.target as HTMLAnchorElement).style.color = active === l ? "#FF5C00" : "#aaa"}
             >{l}</a>
           ))}
           <a href="#contact" style={{
@@ -175,8 +187,8 @@ function NavBar({ active }) {
             fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, letterSpacing: "0.08em",
             textTransform: "uppercase", transition: "all 0.2s",
           }}
-            onMouseEnter={e => { e.target.style.background = "#fff"; e.target.style.color = "#FF5C00"; }}
-            onMouseLeave={e => { e.target.style.background = "#FF5C00"; e.target.style.color = "#fff"; }}
+            onMouseEnter={e => { (e.target as HTMLAnchorElement).style.background = "#fff"; (e.target as HTMLAnchorElement).style.color = "#FF5C00"; }}
+            onMouseLeave={e => { (e.target as HTMLAnchorElement).style.background = "#FF5C00"; (e.target as HTMLAnchorElement).style.color = "#fff"; }}
           >Get Quote</a>
         </div>
       </div>
@@ -191,7 +203,7 @@ function Hero() {
     const id = setInterval(() => { setGlitch(true); setTimeout(() => setGlitch(false), 150); }, 4000);
     return () => clearInterval(id);
   }, []);
-  const handleMouse = (e) => {
+  const handleMouse = (e: React.MouseEvent<HTMLElement>) => {
     setMouse({ x: (e.clientX / window.innerWidth - 0.5) * 20, y: (e.clientY / window.innerHeight - 0.5) * 10 });
   };
   return (
@@ -256,8 +268,8 @@ function Hero() {
               fontWeight: 700, fontSize: "1rem", letterSpacing: "0.08em", textTransform: "uppercase",
               transition: "all 0.2s", display: "inline-block",
             }}
-              onMouseEnter={e => { e.target.style.background = "#fff"; e.target.style.color = "#FF5C00"; e.target.style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { e.target.style.background = "#FF5C00"; e.target.style.color = "#fff"; e.target.style.transform = ""; }}
+              onMouseEnter={e => { (e.target as HTMLAnchorElement).style.background = "#fff"; (e.target as HTMLAnchorElement).style.color = "#FF5C00"; (e.target as HTMLAnchorElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.target as HTMLAnchorElement).style.background = "#FF5C00"; (e.target as HTMLAnchorElement).style.color = "#fff"; (e.target as HTMLAnchorElement).style.transform = ""; }}
             >Start a Project</a>
             <a href="#gallery" style={{
               background: "transparent", color: "#fff", padding: "14px 32px",
@@ -265,8 +277,8 @@ function Hero() {
               fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "1rem",
               letterSpacing: "0.08em", textTransform: "uppercase", transition: "all 0.2s",
             }}
-              onMouseEnter={e => { e.target.style.borderColor = "#FF5C00"; e.target.style.color = "#FF5C00"; }}
-              onMouseLeave={e => { e.target.style.borderColor = "#333"; e.target.style.color = "#fff"; }}
+              onMouseEnter={e => { (e.target as HTMLAnchorElement).style.borderColor = "#FF5C00"; (e.target as HTMLAnchorElement).style.color = "#FF5C00"; }}
+              onMouseLeave={e => { (e.target as HTMLAnchorElement).style.borderColor = "#333"; (e.target as HTMLAnchorElement).style.color = "#fff"; }}
             >View Gallery</a>
           </div>
           <div style={{ display: "flex", gap: 32, marginTop: 48, flexWrap: "wrap" }}>
@@ -317,9 +329,9 @@ function Services() {
                 onMouseLeave={e => e.currentTarget.style.background = "#0D0D0D"}
               >
                 <div style={{ position: "absolute", top: 0, left: 0, width: 0, height: 2, background: "#FF5C00", transition: "width 0.4s ease" }}
-                  onMouseEnter={e => e.target.style.width = "100%"}
+                  onMouseEnter={e => (e.target as HTMLDivElement).style.width = "100%"}
                 />
-                <div style={{ display: "flex", justifySpaceBetween: "space-between", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
                   <span style={{ fontSize: "2rem", color: "#FF5C00" }}>{s.icon}</span>
                   <span style={{ background: "#FF5C0015", color: "#FF5C00", fontSize: "0.65rem", padding: "4px 10px", borderRadius: 2, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em" }}>{s.tag}</span>
                 </div>
@@ -336,7 +348,7 @@ function Services() {
 }
 
 function Gallery() {
-  const [hovered, setHovered] = useState(null);
+  const [hovered, setHovered] = useState<number | null>(null);
   return (
     <section id="gallery" style={{ background: "#0A0A0A", padding: "100px 5%" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -394,46 +406,23 @@ function Gallery() {
 }
 
 function Process() {
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setActive(a => (a + 1) % STEPS.length), 2500);
-    return () => clearInterval(id);
-  }, []);
   return (
-    <section id="process" style={{ background: "#0D0D0D", padding: "100px 5%", position: "relative", overflow: "hidden" }}>
-      <div style={{
-        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-        width: 600, height: 600, borderRadius: "50%",
-        background: "radial-gradient(circle, #FF5C0008 0%, transparent 70%)",
-        pointerEvents: "none",
-      }} />
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ marginBottom: 64 }}>
-          <div style={{ color: "#FF5C00", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 12 }}>— How It Works</div>
-          <h2 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 5vw, 3.5rem)", color: "#fff", margin: 0 }}>The Process</h2>
+    <section id="process" style={{ background: "#000000", padding: "100px 0", position: "relative" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%", marginBottom: 32 }}>
+        <div>
+          <div style={{ color: "#FF5C00", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 12 }}>— Interactive Roadmap</div>
+          <h2 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "clamp(2rem, 5vw, 3.5rem)", color: "#fff", margin: 0 }}>Our 3D Printing Process</h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 2 }}>
-          {STEPS.map((s, i) => (
-            <div key={i} onMouseEnter={() => setActive(i)}
-              style={{
-                padding: "36px 28px", border: `1px solid ${active === i ? "#FF5C00" : "#1a1a1a"}`,
-                transition: "all 0.3s ease", cursor: "default", position: "relative",
-                background: active === i ? "#111" : "transparent",
-              }}>
-              <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "3rem", color: active === i ? "#FF5C00" : "#1f1f1f", transition: "color 0.3s", marginBottom: 16 }}>{s.n}</div>
-              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#fff", margin: "0 0 12px" }}>{s.title}</h3>
-              <p style={{ color: "#555", fontSize: "0.85rem", lineHeight: 1.7, margin: 0, fontFamily: "'DM Mono', monospace" }}>{s.desc}</p>
-              {active === i && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "#FF5C00" }} />}
-            </div>
-          ))}
-        </div>
+      </div>
+      <div style={{ width: "100%", height: "80vh", minHeight: "650px", position: "relative" }}>
+        <RadialOrbitalTimelineDemo />
       </div>
     </section>
   );
 }
 
 function StatsSection() {
-  const ref = useRef(null);
+  const ref = useRef<HTMLElement>(null);
   const [triggered, setTriggered] = useState(false);
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setTriggered(true); }, { threshold: 0.3 });
@@ -487,8 +476,8 @@ function Pricing() {
                   fontWeight: 700, letterSpacing: "0.08em", fontSize: "0.9rem", textTransform: "uppercase",
                   transition: "all 0.2s",
                 }}
-                  onMouseEnter={e => { e.target.style.background = "#FF5C00"; e.target.style.borderColor = "#FF5C00"; e.target.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.target.style.background = p.accent ? "#FF5C00" : "transparent"; e.target.style.borderColor = p.accent ? "#FF5C00" : "#333"; e.target.style.color = p.accent ? "#fff" : "#888"; }}
+                  onMouseEnter={e => { (e.target as HTMLAnchorElement).style.background = "#FF5C00"; (e.target as HTMLAnchorElement).style.borderColor = "#FF5C00"; (e.target as HTMLAnchorElement).style.color = "#fff"; }}
+                  onMouseLeave={e => { (e.target as HTMLAnchorElement).style.background = p.accent ? "#FF5C00" : "transparent"; (e.target as HTMLAnchorElement).style.borderColor = p.accent ? "#FF5C00" : "#333"; (e.target as HTMLAnchorElement).style.color = p.accent ? "#fff" : "#888"; }}
                 >Get Started</a>
               </div>
             </TiltCard>
@@ -521,10 +510,10 @@ function Contact() {
               {[["Name", "name", "text", "Your name"], ["Email", "email", "email", "your@email.com"]].map(([l, k, t, ph]) => (
                 <div key={k}>
                   <label style={{ display: "block", color: "#444", fontSize: "0.7rem", fontFamily: "'DM Mono', monospace", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>{l}</label>
-                  <input type={t} placeholder={ph} value={form[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                  <input type={t} placeholder={ph} value={form[k as keyof typeof form]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
                     style={{ width: "100%", background: "#0A0A0A", border: "1px solid #1a1a1a", borderRadius: 2, padding: "12px 16px", color: "#fff", fontSize: "0.9rem", fontFamily: "'DM Mono', monospace", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s" }}
-                    onFocus={e => e.target.style.borderColor = "#FF5C00"}
-                    onBlur={e => e.target.style.borderColor = "#1a1a1a"}
+                    onFocus={e => (e.target as HTMLInputElement).style.borderColor = "#FF5C00"}
+                    onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#1a1a1a"}
                   />
                 </div>
               ))}
@@ -540,8 +529,8 @@ function Contact() {
               <label style={{ display: "block", color: "#444", fontSize: "0.7rem", fontFamily: "'DM Mono', monospace", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>Message</label>
               <textarea rows={5} placeholder="Describe your project..." value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                 style={{ width: "100%", background: "#0A0A0A", border: "1px solid #1a1a1a", borderRadius: 2, padding: "12px 16px", color: "#fff", fontSize: "0.9rem", fontFamily: "'DM Mono', monospace", resize: "vertical", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s" }}
-                onFocus={e => e.target.style.borderColor = "#FF5C00"}
-                onBlur={e => e.target.style.borderColor = "#1a1a1a"}
+                onFocus={e => (e.target as HTMLTextAreaElement).style.borderColor = "#FF5C00"}
+                onBlur={e => (e.target as HTMLTextAreaElement).style.borderColor = "#1a1a1a"}
               />
             </div>
             <button onClick={() => setSent(true)}
@@ -551,8 +540,8 @@ function Contact() {
                 letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer",
                 transition: "all 0.2s",
               }}
-              onMouseEnter={e => { e.target.style.background = "#fff"; e.target.style.color = "#FF5C00"; }}
-              onMouseLeave={e => { e.target.style.background = "#FF5C00"; e.target.style.color = "#fff"; }}
+              onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = "#fff"; (e.target as HTMLButtonElement).style.color = "#FF5C00"; }}
+              onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = "#FF5C00"; (e.target as HTMLButtonElement).style.color = "#fff"; }}
             >Send Message →</button>
           </div>
         )}
@@ -572,8 +561,8 @@ function Footer() {
         <div style={{ display: "flex", gap: 24 }}>
           {["Instagram", "Twitter", "WhatsApp"].map(s => (
             <a key={s} href="#" style={{ color: "#333", fontSize: "0.75rem", fontFamily: "'DM Mono', monospace", textDecoration: "none", transition: "color 0.2s" }}
-              onMouseEnter={e => e.target.style.color = "#FF5C00"}
-              onMouseLeave={e => e.target.style.color = "#333"}
+              onMouseEnter={e => (e.target as HTMLAnchorElement).style.color = "#FF5C00"}
+              onMouseLeave={e => (e.target as HTMLAnchorElement).style.color = "#333"}
             >{s}</a>
           ))}
         </div>
