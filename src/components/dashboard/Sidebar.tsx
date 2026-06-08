@@ -11,6 +11,7 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
 
 export type DashboardPage =
   | "home"
@@ -28,7 +29,7 @@ interface SidebarProps {
   onNavigate: (page: DashboardPage) => void;
   isOpen: boolean;
   onClose: () => void;
-  cartCount?: number;
+  onLogout?: () => void;
 }
 
 const NAV_ITEMS: { page: DashboardPage; label: string; icon: React.ReactNode }[] = [
@@ -44,7 +45,9 @@ const ACCOUNT_ITEMS: { page: DashboardPage; label: string; icon: React.ReactNode
   { page: "settings", label: "Settings", icon: <Settings size={18} /> },
 ];
 
-export default function Sidebar({ activePage, onNavigate, isOpen, onClose, cartCount = 0 }: SidebarProps) {
+export default function Sidebar({ activePage, onNavigate, isOpen, onClose, onLogout }: SidebarProps) {
+  const { cartCount } = useCart();
+  
   const handleNav = (page: DashboardPage) => {
     onNavigate(page);
     onClose();
@@ -148,7 +151,7 @@ export default function Sidebar({ activePage, onNavigate, isOpen, onClose, cartC
           <button
             className="dashboard-sidebar-link"
             style={{ color: "#EF4444" }}
-            onClick={() => alert("Logout clicked")}
+            onClick={() => onLogout?.()}
           >
             <LogOut size={18} />
             Logout

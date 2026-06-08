@@ -1,13 +1,21 @@
 import { useState, useCallback } from "react";
 import "./App.css";
 import "./dashboard.css";
+import "./landing.css";
 
-// Dashboard Components
+// ─── Auth ────────────────────────────────────────────────────
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
+import LoginPage from "@/components/auth/LoginPage";
+import SignupPage from "@/components/auth/SignupPage";
+
+// ─── Landing ─────────────────────────────────────────────────
+import LandingPage from "@/components/landing/LandingPage";
+
+// ─── Customer Dashboard ──────────────────────────────────────
 import Sidebar from "@/components/dashboard/Sidebar";
 import TopBar from "@/components/dashboard/TopBar";
 import type { DashboardPage } from "@/components/dashboard/Sidebar";
-
-// Dashboard Pages
 import HomePage from "@/components/dashboard/pages/HomePage";
 import DesignPage from "@/components/dashboard/pages/DesignPage";
 import UploadDesignPage from "@/components/dashboard/pages/UploadDesignPage";
@@ -18,9 +26,21 @@ import OrderTrackingPage from "@/components/dashboard/pages/OrderTrackingPage";
 import ProfilePage from "@/components/dashboard/pages/ProfilePage";
 import SettingsPage from "@/components/dashboard/pages/SettingsPage";
 
-import type { CartItem } from "@/components/dashboard/pages/UploadDesignPage";
+// ─── Worker Dashboard ────────────────────────────────────────
+import WorkerSidebar from "@/components/worker/WorkerSidebar";
+import WorkerTopBar from "@/components/worker/WorkerTopBar";
+import type { WorkerPage } from "@/components/worker/WorkerSidebar";
+import WorkerHomePage from "@/components/worker/pages/WorkerHomePage";
 
-// ─── Splash Screen Component ──────────────────────────────────────
+// ─── Admin Dashboard ─────────────────────────────────────────
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminTopBar from "@/components/admin/AdminTopBar";
+import type { AdminPage } from "@/components/admin/AdminSidebar";
+import AdminHomePage from "@/components/admin/pages/AdminHomePage";
+import AdminOrdersPage from "@/components/admin/pages/AdminOrdersPage";
+import AdminCustomersPage from "@/components/admin/pages/AdminCustomersPage";
+
+// ─── Splash Screen ──────────────────────────────────────────
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [fadeOut, setFadeOut] = useState(false);
   useState(() => {
@@ -37,7 +57,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
           <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
         </div>
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", marginTop: 8 }}>
-          Initializing Dashboard...
+          Loading...
         </div>
       </div>
       <div className="splash-bar-track">
@@ -47,109 +67,221 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-export default function App() {
-  // Splash Screen
-  const [splashDone, setSplashDone] = useState(false);
-  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
-
-  // Navigation state
+// ──────────────────────────────────────────────────────────────
+// Customer Dashboard
+// ──────────────────────────────────────────────────────────────
+function CustomerDashboard({ onLogout }: { onLogout: () => void }) {
+  const { userProfile } = useAuth();
   const [activePage, setActivePage] = useState<DashboardPage>("home");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Cart state
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const handleNavigate = (page: DashboardPage) => { setActivePage(page); setSidebarOpen(false); window.scrollTo({ top: 0 }); };
 
-  const handleAddToCart = (item: CartItem) => {
-    setCartItems((prev) => [...prev, item]);
-  };
-
-  const handleNavigate = (page: DashboardPage) => {
-    setActivePage(page);
-    setSidebarOpen(false);
-    // Scroll to top on page change
-    window.scrollTo({ top: 0 });
-  };
-
-  // Render the active page
   const renderPage = () => {
     switch (activePage) {
-      case "home":
-        return (
-          <HomePage
-            onNavigate={handleNavigate}
-            cartCount={cartItems.length}
-            ordersCount={3}
-          />
-        );
-      case "design":
-        return <DesignPage onNavigate={handleNavigate} />;
-      case "upload":
-        return <UploadDesignPage onAddToCart={handleAddToCart} />;
-      case "our-designs":
-        return (
-          <OurDesignsPage
-            onNavigate={handleNavigate}
-            onAddToCart={handleAddToCart}
-          />
-        );
-      case "customize":
-        return (
-          <CustomizeDesignPage
-            onNavigate={handleNavigate}
-            onAddToCart={handleAddToCart}
-          />
-        );
-      case "cart":
-        return (
-          <CartPage
-            cartItems={cartItems}
-            onUpdateCart={setCartItems}
-            onNavigate={handleNavigate}
-          />
-        );
-      case "orders":
-        return <OrderTrackingPage />;
-      case "profile":
-        return <ProfilePage />;
-      case "settings":
-        return <SettingsPage />;
-      default:
-        return (
-          <HomePage
-            onNavigate={handleNavigate}
-            cartCount={cartItems.length}
-            ordersCount={3}
-          />
-        );
+      case "home": return <HomePage onNavigate={handleNavigate} />;
+      case "design": return <DesignPage onNavigate={handleNavigate} />;
+      case "upload": return <UploadDesignPage />;
+      case "our-designs": return <OurDesignsPage onNavigate={handleNavigate} />;
+      case "customize": return <CustomizeDesignPage onNavigate={handleNavigate} />;
+      case "cart": return <CartPage onNavigate={handleNavigate} />;
+      case "orders": return <OrderTrackingPage />;
+      case "profile": return <ProfilePage />;
+      case "settings": return <SettingsPage />;
+      default: return <HomePage onNavigate={handleNavigate} />;
     }
   };
 
   return (
-    <div style={{ background: "#0A0A0A", minHeight: "100vh" }}>
-      {/* Splash Screen */}
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-
-      {/* Dashboard Layout */}
-      <div className="dashboard-layout">
-        {/* Sidebar */}
-        <Sidebar
-          activePage={activePage}
-          onNavigate={handleNavigate}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          cartCount={cartItems.length}
+    <div className="dashboard-layout">
+      <Sidebar activePage={activePage} onNavigate={handleNavigate} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={onLogout} />
+      <main className="dashboard-main">
+        <TopBar
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          userName={userProfile?.displayName || "User"}
+          userInitials={userProfile ? `${userProfile.firstName?.[0] || ""}${userProfile.lastName?.[0] || ""}` : "U"}
         />
-
-        {/* Main Content */}
-        <main className="dashboard-main">
-          <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-          {/* Page Content - keyed to force re-render animation */}
-          <div key={activePage}>
-            {renderPage()}
-          </div>
-        </main>
-      </div>
+        <div key={activePage}>{renderPage()}</div>
+      </main>
     </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Worker Dashboard
+// ──────────────────────────────────────────────────────────────
+function WorkerDashboard({ onLogout }: { onLogout: () => void }) {
+  const [activePage, setActivePage] = useState<WorkerPage>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleNavigate = (page: WorkerPage) => { setActivePage(page); setSidebarOpen(false); window.scrollTo({ top: 0 }); };
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "dashboard": return <WorkerHomePage />;
+      default: return (
+        <div className="dashboard-page">
+          <div className="dashboard-page-header">
+            <h2>{activePage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</h2>
+            <p>This section is under development.</p>
+          </div>
+          <div className="dash-card" style={{ padding: "60px 40px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#333", marginBottom: 8 }}>
+              🚧 Coming Soon
+            </div>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444" }}>
+              This page is being built. Check back soon!
+            </p>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="dashboard-layout">
+      <WorkerSidebar activePage={activePage} onNavigate={handleNavigate} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={onLogout} />
+      <main className="dashboard-main">
+        <WorkerTopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <div key={activePage}>{renderPage()}</div>
+      </main>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Admin Dashboard
+// ──────────────────────────────────────────────────────────────
+function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
+  const [activePage, setActivePage] = useState<AdminPage>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleNavigate = (page: AdminPage) => { setActivePage(page); setSidebarOpen(false); window.scrollTo({ top: 0 }); };
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "dashboard": return <AdminHomePage onNavigate={handleNavigate} />;
+      case "orders": return <AdminOrdersPage />;
+      case "customers": return <AdminCustomersPage />;
+      default: return (
+        <div className="dashboard-page">
+          <div className="dashboard-page-header">
+            <h2>{activePage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</h2>
+            <p>This section is under development.</p>
+          </div>
+          <div className="dash-card" style={{ padding: "60px 40px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#333", marginBottom: 8 }}>
+              🚧 Coming Soon
+            </div>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444" }}>
+              This page is being built. Check back soon!
+            </p>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="dashboard-layout">
+      <AdminSidebar activePage={activePage} onNavigate={handleNavigate} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={onLogout} />
+      <main className="dashboard-main">
+        <AdminTopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <div key={activePage}>{renderPage()}</div>
+      </main>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// App Router (Auth-Driven)
+// ──────────────────────────────────────────────────────────────
+type AuthView = "landing" | "login" | "signup";
+
+function AppRouter() {
+  const { user, role, loading, logout } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
+  const [authView, setAuthView] = useState<AuthView>("landing");
+  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
+
+  const handleLogout = async () => {
+    await logout();
+    setAuthView("landing");
+  };
+
+  const handleGoToLogin = () => {
+    setAuthView("login");
+    window.scrollTo({ top: 0 });
+  };
+
+  const handleGoToSignup = () => {
+    setAuthView("signup");
+    window.scrollTo({ top: 0 });
+  };
+
+  const handleGoToLanding = () => {
+    setAuthView("landing");
+    window.scrollTo({ top: 0 });
+  };
+
+  // Show splash screen
+  if (!splashDone) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
+  // Show loading while Firebase checks auth
+  if (loading) {
+    return (
+      <div style={{
+        background: "#0A0A0A", minHeight: "100vh",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 40, height: 40, border: "3px solid #222",
+            borderTopColor: "var(--accent)", borderRadius: "50%",
+            animation: "spin 0.8s linear infinite", margin: "0 auto 16px",
+          }} />
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444" }}>
+            Authenticating...
+          </div>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // If user is logged in, show their dashboard
+  if (user && role) {
+    switch (role) {
+      case "customer": return <CustomerDashboard onLogout={handleLogout} />;
+      case "worker": return <WorkerDashboard onLogout={handleLogout} />;
+      case "admin": return <AdminDashboardView onLogout={handleLogout} />;
+    }
+  }
+
+  // Not logged in — show landing / login / signup
+  switch (authView) {
+    case "landing":
+      return <LandingPage onLoginClick={handleGoToLogin} />;
+    case "login":
+      return <LoginPage onGoToSignup={handleGoToSignup} onGoToLanding={handleGoToLanding} />;
+    case "signup":
+      return <SignupPage onGoToLogin={handleGoToLogin} onGoToLanding={handleGoToLanding} />;
+    default:
+      return <LandingPage onLoginClick={handleGoToLogin} />;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Root App Component (wraps everything in AuthProvider)
+// ──────────────────────────────────────────────────────────────
+export default function App() {
+  return (
+    <AuthProvider>
+      <div style={{ background: "#0A0A0A", minHeight: "100vh" }}>
+        <AppRouter />
+      </div>
+    </AuthProvider>
   );
 }

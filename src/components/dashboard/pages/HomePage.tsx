@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import type { DashboardPage } from "../Sidebar";
 
+import { useCart } from "@/hooks/useCart";
+import { useOrders } from "@/hooks/useOrders";
+import { useAuth } from "@/hooks/useAuth";
+
 interface HomePageProps {
   onNavigate: (page: DashboardPage) => void;
-  cartCount: number;
-  ordersCount: number;
 }
 
 const FEATURED_DESIGNS = [
@@ -62,7 +64,13 @@ const FEATURED_DESIGNS = [
   },
 ];
 
-export default function HomePage({ onNavigate, cartCount, ordersCount }: HomePageProps) {
+export default function HomePage({ onNavigate }: HomePageProps) {
+  const { cartCount } = useCart();
+  const { orders } = useOrders();
+  const { userProfile } = useAuth();
+  
+  const ordersCount = orders.length;
+  
   return (
     <div className="dashboard-page">
       {/* Hero Banner */}
@@ -121,7 +129,7 @@ export default function HomePage({ onNavigate, cartCount, ordersCount }: HomePag
                 textTransform: "uppercase",
               }}
             >
-              Welcome Back
+              Welcome Back{userProfile?.firstName ? `, ${userProfile.firstName}` : ""}
             </span>
           </div>
           <h2

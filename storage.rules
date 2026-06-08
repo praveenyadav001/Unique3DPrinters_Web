@@ -1,0 +1,42 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAdmin() {
+      return request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isWorker() {
+      return request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'worker';
+    }
+
+    // Customer custom designs uploads
+    match /uploads/{userId}/{allPaths=**} {
+      // Customers can read their own uploads. Workers/Admins can read to process orders.
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin() || isWorker());
+      // Only the customer can upload to their own folder
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Official store designs (Our Designs)
+    match /designs/{allPaths=**} {
+      // Publicly readable
+      allow read: if true;
+      // Only admins can upload official designs
+      allow write: if isAdmin();
+    }
+
+    // User profile photos
+    match /profiles/{userId}/{allPaths=**} {
+      // Publicly readable so avatars can be displayed in reviews/headers
+      allow read: if true;
+      // Only the user themselves can upload or delete their profile picture
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

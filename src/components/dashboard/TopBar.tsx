@@ -3,10 +3,11 @@ import { Search, Bell, Menu } from "lucide-react";
 interface TopBarProps {
   onMenuToggle: () => void;
   userName?: string;
+  userInitials?: string;
 }
 
-export default function TopBar({ onMenuToggle, userName = "Praveen" }: TopBarProps) {
-  const initials = userName
+export default function TopBar({ onMenuToggle, userName = "User", userInitials }: TopBarProps) {
+  const initials = userInitials || userName
     .split(" ")
     .map((w) => w[0])
     .join("")

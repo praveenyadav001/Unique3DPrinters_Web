@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import type { DashboardPage } from "../Sidebar";
-import type { CartItem } from "./UploadDesignPage";
+import { useCart } from "@/hooks/useCart";
 
 interface CustomizeDesignPageProps {
   onNavigate: (page: DashboardPage) => void;
-  onAddToCart: (item: CartItem) => void;
 }
 
-export default function CustomizeDesignPage({ onNavigate, onAddToCart }: CustomizeDesignPageProps) {
+export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageProps) {
+  const { addItem } = useCart();
   const [step, setStep] = useState(1);
   const [name1, setName1] = useState("");
   const [name2, setName2] = useState("");
@@ -29,15 +29,16 @@ export default function CustomizeDesignPage({ onNavigate, onAddToCart }: Customi
 
   const price = 299 * quantity;
 
-  const handleAddToCart = () => {
-    onAddToCart({
-      id: `custom-flip-${Date.now()}`,
+  const handleAddToCart = async () => {
+    await addItem({
+      designId: undefined,
       name: `Flip Name: ${name1} ❤ ${name2}`,
       material,
       color,
+      size: "100%",
       quantity,
-      price,
-      image: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=200&q=80",
+      price: 299,
+      imageURL: "",
     });
     setStep(5); // success step
   };
