@@ -1,0 +1,1 @@
+export default function WorkerTasksPage() { return (<div className="dashboard-page"><div className="dashboard-page-header"><h2>WorkerTasksPage</h2><p>Manage WorkerTasksPage</p></div><div className="dash-card"><p style={{ color: '#888' }}>No data available yet.</p></div></div>); }

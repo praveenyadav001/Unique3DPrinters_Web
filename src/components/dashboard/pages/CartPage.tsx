@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, ShoppingCart, ArrowRight, Check, Loader2 } from "lucide-react";
 import type { DashboardPage } from "../Sidebar";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { createOrder } from "@/services/orders.service";
+import { processPayment } from "@/services/payment.service";
 
 interface CartPageProps {
   onNavigate: (page: DashboardPage) => void;
@@ -25,6 +26,18 @@ export default function CartPage({ onNavigate }: CartPageProps) {
     phone: userProfile?.phone || "",
   });
 
+  useEffect(() => {
+    if (userProfile && !deliveryForm.fullName && !deliveryForm.address) {
+      setDeliveryForm({
+        fullName: userProfile.displayName || "",
+        address: userProfile.address || "",
+        city: userProfile.city || "",
+        pincode: userProfile.pincode || "",
+        phone: userProfile.phone || "",
+      });
+    }
+  }, [userProfile]);
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 0 ? 40 : 0;
   const tax = Math.floor(subtotal * 0.18);
@@ -41,7 +54,22 @@ export default function CartPage({ onNavigate }: CartPageProps) {
 
   const handlePlaceOrder = async () => {
     if (!user || !userProfile) return;
+    
+    if (!deliveryForm.fullName.trim() || !deliveryForm.address.trim() || !deliveryForm.city.trim() || !deliveryForm.pincode.trim() || !deliveryForm.phone.trim()) {
+      alert("Please fill out all delivery address fields.");
+      return;
+    }
+
     setPlacingOrder(true);
+    
+    // Process Payment
+    const paymentResult = await processPayment(total, "INR");
+    if (!paymentResult.success) {
+      setPlacingOrder(false);
+      alert(paymentResult.error || "Payment failed.");
+      return;
+    }
+
     try {
       const newOrderId = await createOrder({
         customerId: user.uid,
@@ -283,7 +311,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                 style={{ width: "100%", justifyContent: "center", background: "#10B981", display: "flex", alignItems: "center", gap: 8 }}
                 onClick={handlePlaceOrder}>
                 {placingOrder && <Loader2 size={14} style={{ animation: "spin 0.8s linear infinite" }} />}
-                Pay ₹{total.toLocaleString()}
+                {placingOrder ? "Processing Payment..." : `Pay ₹${total.toLocaleString()}`}
               </button>
               <button className="dash-btn-secondary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setCheckoutStep("cart")}>
                 Back to Cart

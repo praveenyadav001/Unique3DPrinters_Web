@@ -1,0 +1,1 @@
+export default function AdminReportsPage() { return (<div className="dashboard-page"><div className="dashboard-page-header"><h2>AdminReportsPage</h2><p>Manage AdminReportsPage</p></div><div className="dash-card"><p style={{ color: '#888' }}>No data available yet.</p></div></div>); }

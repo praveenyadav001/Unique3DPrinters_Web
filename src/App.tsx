@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import "./App.css";
 import "./dashboard.css";
 import "./landing.css";
@@ -31,6 +31,17 @@ import WorkerSidebar from "@/components/worker/WorkerSidebar";
 import WorkerTopBar from "@/components/worker/WorkerTopBar";
 import type { WorkerPage } from "@/components/worker/WorkerSidebar";
 import WorkerHomePage from "@/components/worker/pages/WorkerHomePage";
+import WorkerTasksPage from "@/components/worker/pages/WorkerTasksPage";
+import WorkerPrintQueuePage from "@/components/worker/pages/WorkerPrintQueuePage";
+import WorkerInProgressPage from "@/components/worker/pages/WorkerInProgressPage";
+import WorkerCompletedPage from "@/components/worker/pages/WorkerCompletedPage";
+import WorkerDesignsPage from "@/components/worker/pages/WorkerDesignsPage";
+import WorkerMaterialsPage from "@/components/worker/pages/WorkerMaterialsPage";
+import WorkerPrintersPage from "@/components/worker/pages/WorkerPrintersPage";
+import WorkerMaintenancePage from "@/components/worker/pages/WorkerMaintenancePage";
+import WorkerProfilePage from "@/components/worker/pages/WorkerProfilePage";
+import WorkerSchedulePage from "@/components/worker/pages/WorkerSchedulePage";
+import WorkerSupportPage from "@/components/worker/pages/WorkerSupportPage";
 
 // ─── Admin Dashboard ─────────────────────────────────────────
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -39,15 +50,22 @@ import type { AdminPage } from "@/components/admin/AdminSidebar";
 import AdminHomePage from "@/components/admin/pages/AdminHomePage";
 import AdminOrdersPage from "@/components/admin/pages/AdminOrdersPage";
 import AdminCustomersPage from "@/components/admin/pages/AdminCustomersPage";
+import AdminDesignsPage from "@/components/admin/pages/AdminDesignsPage";
+import AdminProductsPage from "@/components/admin/pages/AdminProductsPage";
+import AdminCategoriesPage from "@/components/admin/pages/AdminCategoriesPage";
+import AdminUsersPage from "@/components/admin/pages/AdminUsersPage";
+import AdminReportsPage from "@/components/admin/pages/AdminReportsPage";
+import AdminMaterialsPage from "@/components/admin/pages/AdminMaterialsPage";
+import AdminPrintersPage from "@/components/admin/pages/AdminPrintersPage";
 
 // ─── Splash Screen ──────────────────────────────────────────
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [fadeOut, setFadeOut] = useState(false);
-  useState(() => {
+  useEffect(() => {
     const t1 = setTimeout(() => setFadeOut(true), 1600);
     const t2 = setTimeout(() => onComplete(), 2200);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  });
+  }, [onComplete]);
   return (
     <div className={`splash-screen ${fadeOut ? "fade-out" : ""}`}>
       <div className="splash-logo" style={{ textAlign: "center" }}>
@@ -119,6 +137,17 @@ function WorkerDashboard({ onLogout }: { onLogout: () => void }) {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard": return <WorkerHomePage />;
+      case "tasks": return <WorkerTasksPage />;
+      case "print-queue": return <WorkerPrintQueuePage />;
+      case "in-progress": return <WorkerInProgressPage />;
+      case "completed": return <WorkerCompletedPage />;
+      case "designs": return <WorkerDesignsPage />;
+      case "materials": return <WorkerMaterialsPage />;
+      case "printers": return <WorkerPrintersPage />;
+      case "maintenance": return <WorkerMaintenancePage />;
+      case "profile": return <WorkerProfilePage />;
+      case "schedule": return <WorkerSchedulePage />;
+      case "support": return <WorkerSupportPage />;
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">
@@ -163,6 +192,13 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "dashboard": return <AdminHomePage onNavigate={handleNavigate} />;
       case "orders": return <AdminOrdersPage />;
       case "customers": return <AdminCustomersPage />;
+      case "designs": return <AdminDesignsPage />;
+      case "products": return <AdminProductsPage />;
+      case "categories": return <AdminCategoriesPage />;
+      case "materials": return <AdminMaterialsPage />;
+      case "printers": return <AdminPrintersPage />;
+      case "users": return <AdminUsersPage />;
+      case "reports": return <AdminReportsPage />;
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">

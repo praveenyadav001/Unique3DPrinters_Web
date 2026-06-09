@@ -15,6 +15,7 @@ import {
 import { Card, CardContent } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
+import { getOrderByNumber } from "@/services/orders.service";
 
 interface OrderStage {
   label: string;
@@ -267,29 +268,68 @@ export default function OrderStatusTracker() {
     }
   }, [fanBoostActive]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const id = searchId.trim().toUpperCase();
     if (!id) return;
 
-    if (MOCK_ORDERS[id]) {
-      const order = MOCK_ORDERS[id];
-      setSearchedOrder(order);
-      setErrorMsg(null);
-      setPrintStateOverride(null);
+    try {
+      const orderDoc = await getOrderByNumber(id);
+      
+      if (orderDoc) {
+        const statusProgressMap: Record<string, number> = {
+          Pending: 10,
+          Confirmed: 20,
+          Processing: 30,
+          Printing: 50,
+          "Post Processing": 80,
+          Shipped: 95,
+          Delivered: 100,
+          Cancelled: 0,
+        };
 
-      // Initialize live tracker values for that printer
-      const printer = INITIAL_PRINTERS[order.printerId];
-      if (printer) {
-        setLiveNozzleTemp(printer.targetNozzle);
-        setLiveBedTemp(printer.targetBed);
-        setCurrentLayer(Math.floor((order.progress / 100) * printer.maxLayers));
-        setTimeRemaining(Math.floor((100 - order.progress) * 85)); // seconds estimate
-        setLiveFanRPM(printer.status === "PRINTING" ? 4200 : 0);
+        const progress = statusProgressMap[orderDoc.status] || 10;
+        const itemName = orderDoc.items[0]?.designName || "Custom Part";
+        const itemQty = orderDoc.items[0]?.quantity || 1;
+        const material = orderDoc.items[0]?.material || "Standard PLA";
+
+        const mappedOrder: OrderData = {
+          id: orderDoc.orderNumber,
+          client: orderDoc.customerName,
+          item: itemName,
+          material: material,
+          qty: itemQty,
+          progress: progress,
+          printerId: "PRINTER-01", // Mapped statically for telemetry demo
+          stages: [
+            { label: "Received", desc: "Order placed & confirmed", status: progress >= 20 ? "done" : progress >= 10 ? "current" : "pending" },
+            { label: "Processing", desc: "Worker assigned & slicing", status: progress >= 30 ? "done" : progress >= 20 ? "current" : "pending" },
+            { label: "Printing", desc: "Active on printer", status: progress >= 80 ? "done" : progress >= 30 ? "current" : "pending" },
+            { label: "Post-Processing", desc: "QC & Finishing", status: progress >= 95 ? "done" : progress >= 80 ? "current" : "pending" },
+            { label: "Shipped", desc: orderDoc.trackingNumber ? `Tracking: ${orderDoc.trackingNumber}` : "Awaiting dispatch", status: progress >= 100 ? "done" : progress >= 95 ? "current" : "pending" }
+          ]
+        };
+
+        setSearchedOrder(mappedOrder);
+        setErrorMsg(null);
+        setPrintStateOverride(orderDoc.status === "Cancelled" ? "ABORTED" : null);
+
+        // Initialize live tracker values
+        const printer = INITIAL_PRINTERS["PRINTER-01"];
+        if (printer) {
+          setLiveNozzleTemp(printer.targetNozzle);
+          setLiveBedTemp(printer.targetBed);
+          setCurrentLayer(Math.floor((progress / 100) * printer.maxLayers));
+          setTimeRemaining(Math.floor((100 - progress) * 85)); // seconds estimate
+          setLiveFanRPM(printer.status === "PRINTING" ? 4200 : 0);
+        }
+      } else {
+        setSearchedOrder(null);
+        setErrorMsg("Order not found. Please verify the ID.");
       }
-    } else {
-      setSearchedOrder(null);
-      setErrorMsg("Order ID not found. Try searching ORD-1001, ORD-1002, ORD-1003, or ORD-1004.");
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Failed to fetch order.");
     }
   };
 

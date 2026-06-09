@@ -1,0 +1,1 @@
+export default function WorkerSchedulePage() { return (<div className="dashboard-page"><div className="dashboard-page-header"><h2>WorkerSchedulePage</h2><p>Manage WorkerSchedulePage</p></div><div className="dash-card"><p style={{ color: '#888' }}>No data available yet.</p></div></div>); }

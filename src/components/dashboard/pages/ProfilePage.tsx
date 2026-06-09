@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrders } from "@/hooks/useOrders";
@@ -21,6 +21,20 @@ export default function ProfilePage() {
     pincode: userProfile?.pincode || "",
   });
 
+  useEffect(() => {
+    if (userProfile && !form.firstName && !form.lastName) {
+      setForm({
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        email: userProfile.email || "",
+        phone: userProfile.phone || "",
+        address: userProfile.address || "",
+        city: userProfile.city || "",
+        pincode: userProfile.pincode || "",
+      });
+    }
+  }, [userProfile]);
+
   const initials = `${form.firstName?.[0] || ""}${form.lastName?.[0] || ""}`.toUpperCase() || "U";
 
   // Compute real stats
@@ -31,6 +45,12 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user) return;
+
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.phone.trim()) {
+      alert("Please enter at least your first name, last name, and phone number.");
+      return;
+    }
+
     setSaving(true);
     try {
       await updateUserProfile(user.uid, {

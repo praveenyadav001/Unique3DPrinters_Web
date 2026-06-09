@@ -9,8 +9,10 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   updatePassword,
+  getAuth,
   type User,
 } from "firebase/auth";
+import { initializeApp, deleteApp } from "firebase/app";
 import {
   doc,
   getDoc,
@@ -22,7 +24,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, firebaseConfig } from "@/lib/firebase";
 import type { UserDoc, UserRole } from "@/types/firebase.types";
 
 const googleProvider = new GoogleAuthProvider();
@@ -150,11 +152,20 @@ export async function createWorkerAccount(
   firstName: string,
   lastName: string
 ): Promise<{ user: User; profile: UserDoc }> {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  const profile = await createUserDoc(cred.user, {
-    firstName,
-    lastName,
-    role: "worker",
-  });
-  return { user: cred.user, profile };
+  // Use a secondary app to prevent logging out the current admin user
+  const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_" + Date.now());
+  const secondaryAuth = getAuth(secondaryApp);
+  
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const profile = await createUserDoc(cred.user, {
+      firstName,
+      lastName,
+      role: "worker",
+    });
+    return { user: cred.user, profile };
+  } finally {
+    await secondaryAuth.signOut();
+    await deleteApp(secondaryApp);
+  }
 }

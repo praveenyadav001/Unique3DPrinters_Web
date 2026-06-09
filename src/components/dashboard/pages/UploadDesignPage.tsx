@@ -3,6 +3,9 @@ import { UploadCloud, File, X, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { upload3DFile, type UploadProgress } from "@/services/storage.service";
+import ModelViewer from "@/components/ui/model-viewer";
+import * as THREE from "three";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 
 export default function UploadDesignPage() {
   const { user } = useAuth();
@@ -21,13 +24,67 @@ export default function UploadDesignPage() {
   const [size, setSize] = useState("100%");
   const [quantity, setQuantity] = useState(1);
 
-  const materialPrices: Record<string, number> = {
-    PLA: 120, ABS: 150, PETG: 180, TPU: 200, Resin: 250,
+  const [volumeCm3, setVolumeCm3] = useState<number>(0);
+  const [estimatedWeightGrams, setEstimatedWeightGrams] = useState<number>(0);
+
+  // Material Densities (g/cm³)
+  const materialDensities: Record<string, number> = {
+    PLA: 1.24, ABS: 1.04, PETG: 1.27, TPU: 1.21, Resin: 1.1,
   };
 
-  const basePrice = materialPrices[material] || 120;
+  // Base price per gram (INR)
+  const materialPricePerGram: Record<string, number> = {
+    PLA: 3.5, ABS: 3.8, PETG: 4.2, TPU: 5.5, Resin: 8.0,
+  };
+
+  const calculatePrice = () => {
+    if (!volumeCm3) return 0;
+    const density = materialDensities[material] || 1.24;
+    const ppg = materialPricePerGram[material] || 3.5;
+    const weight = volumeCm3 * density;
+    
+    // Scale factor based on chosen size (50% = 0.5 length, so volume scales by 0.5^3)
+    const scaleMap: Record<string, number> = { "50%": 0.5, "75%": 0.75, "100%": 1, "125%": 1.25, "150%": 1.5 };
+    const linearScale = scaleMap[size] || 1;
+    const volumeScale = Math.pow(linearScale, 3);
+    
+    const scaledWeight = weight * volumeScale;
+    
+    // Minimum price of ₹50
+    return Math.max(50, scaledWeight * ppg);
+  };
+
+  const basePrice = calculatePrice();
   const totalPrice = basePrice * quantity;
-  const printTime = `${Math.floor(1.5 * quantity)}h ${Math.floor(Math.random() * 50 + 10)}m`;
+  
+  // Rough print time estimation (1.5 hours per 50g)
+  const calculatePrintTime = () => {
+    if (!volumeCm3) return "0h 0m";
+    const density = materialDensities[material] || 1.24;
+    const scaleMap: Record<string, number> = { "50%": 0.5, "75%": 0.75, "100%": 1, "125%": 1.25, "150%": 1.5 };
+    const scaledWeight = volumeCm3 * density * Math.pow(scaleMap[size] || 1, 3);
+    
+    const hoursBase = (scaledWeight / 50) * 1.5 * quantity;
+    const hours = Math.floor(hoursBase);
+    const mins = Math.floor((hoursBase - hours) * 60);
+    return `${hours}h ${mins}m`;
+  };
+  const printTime = calculatePrintTime();
+
+  const getGeometryVolume = (geometry: THREE.BufferGeometry): number => {
+    let position = geometry.attributes.position;
+    let volume = 0;
+    let p1 = new THREE.Vector3(), p2 = new THREE.Vector3(), p3 = new THREE.Vector3();
+    const faces = position.count / 3;
+
+    for (let i = 0; i < faces; i++) {
+      p1.fromBufferAttribute(position, i * 3);
+      p2.fromBufferAttribute(position, i * 3 + 1);
+      p3.fromBufferAttribute(position, i * 3 + 2);
+      volume += p1.dot(p2.cross(p3)) / 6.0;
+    }
+    return Math.abs(volume);
+  };
 
   const processFile = async (file: File) => {
     setUploadedFile({
@@ -35,6 +92,21 @@ export default function UploadDesignPage() {
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
       file,
     });
+
+    // Parse STL to calculate volume
+    if (file.name.toLowerCase().endsWith(".stl")) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const loader = new STLLoader();
+        const geometry = loader.parse(arrayBuffer);
+        const volumeMm3 = getGeometryVolume(geometry);
+        const cm3 = volumeMm3 / 1000;
+        setVolumeCm3(cm3);
+        setEstimatedWeightGrams(cm3 * 1.24); // default PLA density
+      } catch (err) {
+        console.error("Failed to parse STL for volume:", err);
+      }
+    }
 
     // Upload to Firebase Storage
     if (user) {
@@ -149,34 +221,8 @@ export default function UploadDesignPage() {
           )}
 
           {/* 3D Preview Area */}
-          <div className="dash-3d-preview" style={{ marginTop: uploadedFile ? 0 : 16, display: "flex", alignItems: "center", justifyContent: "center", aspectRatio: "4/3", background: "radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.04) 0%, #0A0A0A 70%)" }}>
-            <svg viewBox="0 0 200 200" width="160" height="160" style={{ filter: "drop-shadow(0 0 15px rgba(var(--accent-rgb), 0.25))" }}>
-              <defs><linearGradient id="gearGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#333" /><stop offset="100%" stopColor="#1a1a1a" /></linearGradient></defs>
-              {Array.from({ length: 12 }).map((_, i) => {
-                const angle = (i * 30 * Math.PI) / 180;
-                const x = 100 + 80 * Math.cos(angle);
-                const y = 100 + 80 * Math.sin(angle);
-                return <rect key={i} x={x - 8} y={y - 8} width={16} height={16} rx={2} fill="url(#gearGrad)" stroke="var(--accent)" strokeWidth="0.5" strokeOpacity="0.3" transform={`rotate(${i * 30}, ${x}, ${y})`} />;
-              })}
-              <circle cx="100" cy="100" r="65" fill="url(#gearGrad)" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.3" />
-              <circle cx="100" cy="100" r="55" fill="#0D0D0D" stroke="#333" strokeWidth="0.5" />
-              {[0, 60, 120, 180, 240, 300].map((a) => {
-                const rad = (a * Math.PI) / 180;
-                return <line key={a} x1={100 + 20 * Math.cos(rad)} y1={100 + 20 * Math.sin(rad)} x2={100 + 50 * Math.cos(rad)} y2={100 + 50 * Math.sin(rad)} stroke="var(--accent)" strokeWidth="3" strokeOpacity="0.15" strokeLinecap="round" />;
-              })}
-              <circle cx="100" cy="100" r="18" fill="#111" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.4" />
-              <circle cx="100" cy="100" r="8" fill="#0A0A0A" stroke="#333" strokeWidth="1" />
-              {[45, 135, 225, 315].map((a) => {
-                const rad = (a * Math.PI) / 180;
-                return <circle key={a} cx={100 + 38 * Math.cos(rad)} cy={100 + 38 * Math.sin(rad)} r="4" fill="#0A0A0A" stroke="#333" strokeWidth="0.5" />;
-              })}
-            </svg>
-            <div className="dash-3d-controls">
-              <button title="Rotate Left">↺</button>
-              <button title="Zoom In">+</button>
-              <button title="Zoom Out">−</button>
-              <button title="Rotate Right">↻</button>
-            </div>
+          <div style={{ marginTop: uploadedFile ? 0 : 16, height: 400, borderRadius: 12, overflow: "hidden" }}>
+            <ModelViewer file={uploadedFile?.file || null} accentColor="var(--accent)" />
           </div>
         </div>
 
@@ -224,6 +270,9 @@ export default function UploadDesignPage() {
             </h3>
             <div className="dash-price-row"><span className="label">Material:</span><span className="value">₹{basePrice.toFixed(2)}</span></div>
             <div className="dash-price-row"><span className="label">Print Time:</span><span className="value">{printTime}</span></div>
+            {volumeCm3 > 0 && (
+              <div className="dash-price-row"><span className="label">Est. Weight (1x):</span><span className="value">{estimatedWeightGrams.toFixed(1)}g</span></div>
+            )}
             <div className="dash-price-row"><span className="label">Quantity:</span><span className="value">{quantity}</span></div>
             <div className="dash-price-total"><span className="label">Total</span><span className="value">₹{totalPrice.toFixed(2)}</span></div>
             <button

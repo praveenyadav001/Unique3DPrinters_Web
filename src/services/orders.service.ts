@@ -2,9 +2,9 @@
 // CRUD + real-time listeners for orders, filtered by role
 
 import {
-  collection, doc, addDoc, updateDoc, onSnapshot,
+  collection, doc, addDoc, updateDoc, onSnapshot, getDoc,
   query, where, orderBy, limit, serverTimestamp,
-  type Unsubscribe, getDocs, Timestamp,
+  type Unsubscribe, getDocs, Timestamp, arrayUnion, runTransaction
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { OrderDoc, OrderStatus, OrderItem, ShippingAddress } from "@/types/firebase.types";
@@ -13,12 +13,19 @@ const ordersRef = collection(db, "orders");
 
 // ─── Generate Order Number ──────────────────────────────────
 async function generateOrderNumber(): Promise<string> {
-  const q = query(ordersRef, orderBy("createdAt", "desc"), limit(1));
-  const snap = await getDocs(q);
-  if (snap.empty) return "ORD10001";
-  const last = snap.docs[0].data() as OrderDoc;
-  const num = parseInt(last.orderNumber.replace("ORD", "")) + 1;
-  return `ORD${num}`;
+  const counterRef = doc(db, "counters", "orders");
+  let nextNum = 10001;
+  await runTransaction(db, async (transaction) => {
+    const counterDoc = await transaction.get(counterRef);
+    if (!counterDoc.exists()) {
+      transaction.set(counterRef, { lastNumber: 10001 });
+      nextNum = 10001;
+    } else {
+      nextNum = counterDoc.data().lastNumber + 1;
+      transaction.update(counterRef, { lastNumber: nextNum });
+    }
+  });
+  return `ORD${nextNum}`;
 }
 
 // ─── Create Order ───────────────────────────────────────────
@@ -76,12 +83,40 @@ export async function updateOrderStatus(
   const ref = doc(db, "orders", orderId);
   await updateDoc(ref, {
     status,
-    statusHistory: [
-      // We'll use arrayUnion in production, but for simplicity:
-    ],
+    statusHistory: arrayUnion({
+      status,
+      timestamp: Timestamp.now(),
+      note: _note || `Status changed to ${status}`,
+    }),
     updatedAt: serverTimestamp(),
     ...(status === "Delivered" ? { deliveredAt: serverTimestamp() } : {}),
   });
+
+  // Trigger email via Vercel Serverless Function if Shipped or Delivered
+  if (status === "Shipped" || status === "Delivered") {
+    try {
+      const docSnap = await getDoc(ref);
+      if (docSnap.exists()) {
+        const orderData = docSnap.data();
+        if (orderData.customerEmail) {
+          await fetch("/api/sendEmail", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              orderId: orderData.orderNumber || orderId,
+              status: status,
+              customerEmail: orderData.customerEmail,
+              customerName: orderData.customerName,
+            })
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Failed to trigger email API", e);
+    }
+  }
 }
 
 // ─── Assign Worker to Order ─────────────────────────────────
@@ -107,6 +142,16 @@ export async function unassignWorker(orderId: string): Promise<void> {
     assignedWorkerName: null,
     updatedAt: serverTimestamp(),
   });
+}
+
+// ─── Get Order by Number ──────────────────────────────────────
+export async function getOrderByNumber(orderNumber: string): Promise<OrderDoc | null> {
+  const cleanNumber = orderNumber.replace("-", "").toUpperCase();
+  const q = query(ordersRef, where("orderNumber", "==", cleanNumber), limit(1));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  const docSnap = snap.docs[0];
+  return { id: docSnap.id, ...docSnap.data() } as OrderDoc;
 }
 
 // ─── Real-time Listeners ────────────────────────────────────

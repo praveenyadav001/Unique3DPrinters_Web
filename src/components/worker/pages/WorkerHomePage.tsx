@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
+import { updateOrderStatus } from "@/services/orders.service";
 
 // Stats and Tasks are computed dynamically inside the component from real order data
 
@@ -77,6 +78,7 @@ export default function WorkerHomePage() {
   // Build tasks from real orders
   const TASKS = assignedOrders.map((o) => ({
     id: o.orderNumber,
+    docId: o.id,
     task: o.status,
     design: o.items?.[0]?.designName || "Custom Design",
     emoji: "📦",
@@ -84,6 +86,15 @@ export default function WorkerHomePage() {
     due: "—",
     status: o.status,
   }));
+
+  const handleUpdateStatus = async (docId: string, newStatus: string) => {
+    try {
+      await updateOrderStatus(docId, newStatus as any);
+    } catch (error) {
+      console.error("Failed to update status", error);
+      alert("Failed to update status.");
+    }
+  };
 
   // TODO: Wire these handlers to UI buttons when worker action buttons are added
   // updateOrderStatus and updateWorkerStatus can be imported from their services
@@ -168,10 +179,19 @@ export default function WorkerHomePage() {
                     </td>
                     <td style={{ padding: "12px 16px", color: "#888" }}>{t.printer}</td>
                     <td style={{ padding: "12px 16px", color: "#888" }}>{t.due}</td>
-                    <td style={{ padding: "12px 16px" }}>
+                    <td style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
                       <span className={`dash-badge ${t.status === "Processing" || t.status === "Printing" ? "dash-badge-accent" : "dash-badge-yellow"}`}>
                         {t.status}
                       </span>
+                      {t.status === "Processing" && (
+                        <button onClick={() => handleUpdateStatus(t.docId, "Printing")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Start Print</button>
+                      )}
+                      {t.status === "Printing" && (
+                        <button onClick={() => handleUpdateStatus(t.docId, "Post Processing")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Finish Print</button>
+                      )}
+                      {t.status === "Post Processing" && (
+                        <button onClick={() => handleUpdateStatus(t.docId, "Shipped")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Ship</button>
+                      )}
                     </td>
                   </tr>
                 ))}

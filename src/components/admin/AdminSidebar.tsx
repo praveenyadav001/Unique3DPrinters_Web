@@ -7,6 +7,7 @@ import {
 
 export type AdminPage =
   | "dashboard" | "orders" | "customers" | "designs" | "upload-designs" | "categories" | "products"
+  | "materials" | "printers"
   | "quotes" | "payments" | "discounts" | "coupons"
   | "users" | "roles" | "settings" | "website-settings"
   | "reports" | "analytics";
@@ -27,6 +28,8 @@ const MANAGE: { page: AdminPage; label: string; icon: React.ReactNode }[] = [
   { page: "upload-designs", label: "Upload Designs", icon: <UploadCloud size={18} /> },
   { page: "categories", label: "Categories", icon: <Grid3X3 size={18} /> },
   { page: "products", label: "Products", icon: <ShoppingBag size={18} /> },
+  { page: "materials", label: "Materials", icon: <Palette size={18} /> },
+  { page: "printers", label: "Printers", icon: <Grid3X3 size={18} /> },
 ];
 
 const BUSINESS: { page: AdminPage; label: string; icon: React.ReactNode }[] = [

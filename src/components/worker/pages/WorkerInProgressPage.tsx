@@ -1,0 +1,1 @@
+export default function WorkerInProgressPage() { return (<div className="dashboard-page"><div className="dashboard-page-header"><h2>WorkerInProgressPage</h2><p>Manage WorkerInProgressPage</p></div><div className="dash-card"><p style={{ color: '#888' }}>No data available yet.</p></div></div>); }
