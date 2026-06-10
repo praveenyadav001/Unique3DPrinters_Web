@@ -1,15 +1,10 @@
 import { useState } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
-
-const INITIAL_MATERIALS = [
-  { id: "M1", name: "PLA - Black", type: "PLA", stockKg: 4.5, pricePerGram: 3.5, inStock: true },
-  { id: "M2", name: "PLA - White", type: "PLA", stockKg: 2.1, pricePerGram: 3.5, inStock: true },
-  { id: "M3", name: "PETG - Transparent", type: "PETG", stockKg: 0.8, pricePerGram: 4.2, inStock: false },
-  { id: "M4", name: "Resin - Grey", type: "Resin", stockKg: 1.5, pricePerGram: 8.0, inStock: true },
-];
+import { useMaterials } from "@/hooks/useMaterials";
+import { deleteMaterial } from "@/services/materials.service";
 
 export default function AdminMaterialsPage() {
-  const [materials, setMaterials] = useState(INITIAL_MATERIALS);
+  const { materials, loading } = useMaterials();
 
   return (
     <div className="dashboard-page">
@@ -31,21 +26,25 @@ export default function AdminMaterialsPage() {
             </tr>
           </thead>
           <tbody>
-            {materials.map((m) => (
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: "16px", textAlign: "center", color: "#666" }}>Loading materials...</td></tr>
+            ) : materials.length === 0 ? (
+              <tr><td colSpan={6} style={{ padding: "16px", textAlign: "center", color: "#666" }}>No materials found.</td></tr>
+            ) : materials.map((m) => (
               <tr key={m.id} style={{ borderBottom: "1px solid #111" }}>
                 <td style={{ padding: "12px 16px", color: "#fff", fontWeight: 600, fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem" }}>{m.name}</td>
                 <td style={{ padding: "12px 16px", color: "#aaa" }}>{m.type}</td>
-                <td style={{ padding: "12px 16px", color: m.stockKg < 1 ? "#EF4444" : "#ccc" }}>{m.stockKg} kg</td>
-                <td style={{ padding: "12px 16px", color: "var(--accent)" }}>₹{m.pricePerGram.toFixed(2)}</td>
+                <td style={{ padding: "12px 16px", color: m.stock < 1 ? "#EF4444" : "#ccc" }}>{m.stock} {m.unit}</td>
+                <td style={{ padding: "12px 16px", color: "var(--accent)" }}>₹{m.pricePerUnit?.toFixed(2) || "0.00"}</td>
                 <td style={{ padding: "12px 16px" }}>
-                  <span className={`dash-badge ${m.inStock ? "dash-badge-green" : "dash-badge-red"}`}>
-                    {m.inStock ? "In Stock" : "Out of Stock"}
+                  <span className={`dash-badge ${m.isActive && m.stock > 0 ? "dash-badge-green" : "dash-badge-red"}`}>
+                    {m.isActive && m.stock > 0 ? "In Stock" : "Out of Stock"}
                   </span>
                 </td>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }}><Edit2 size={14} /></button>
-                    <button style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer" }}><Trash2 size={14} /></button>
+                    <button onClick={() => deleteMaterial(m.id)} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer" }}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>

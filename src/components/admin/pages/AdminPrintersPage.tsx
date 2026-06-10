@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { Plus, Settings2, ShieldCheck, AlertCircle } from "lucide-react";
 import { useWorkers } from "@/hooks/useWorkers";
-
-const INITIAL_PRINTERS = [
-  { id: "P-01", name: "Ender 5 Pro", type: "FDM", status: "Active", assignedWorker: null },
-  { id: "P-02", name: "Prusa i3 MK3S+", type: "FDM", status: "Active", assignedWorker: null },
-  { id: "P-03", name: "Anycubic Kobra", type: "FDM", status: "Maintenance", assignedWorker: null },
-  { id: "P-04", name: "Elegoo Mars 3", type: "Resin", status: "Active", assignedWorker: null },
-];
+import { usePrinters } from "@/hooks/usePrinters";
+import { updatePrinter } from "@/services/printers.service";
 
 export default function AdminPrintersPage() {
   const { workers } = useWorkers();
-  const [printers, setPrinters] = useState(INITIAL_PRINTERS);
+  const { printers, loading } = usePrinters();
 
-  const handleAssignWorker = (printerId: string, workerId: string) => {
-    setPrinters(printers.map(p => p.id === printerId ? { ...p, assignedWorker: workerId || null } as any : p));
+  const handleAssignWorker = async (printerId: string, workerId: string) => {
+    try {
+      await updatePrinter(printerId, { assignedWorkerId: workerId || null });
+    } catch (err) {
+      console.error("Failed to assign worker", err);
+    }
   };
 
   return (
@@ -37,7 +36,11 @@ export default function AdminPrintersPage() {
             </tr>
           </thead>
           <tbody>
-            {printers.map((p) => (
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: "16px", textAlign: "center", color: "#666" }}>Loading printers...</td></tr>
+            ) : printers.length === 0 ? (
+              <tr><td colSpan={6} style={{ padding: "16px", textAlign: "center", color: "#666" }}>No printers found.</td></tr>
+            ) : printers.map((p) => (
               <tr key={p.id} style={{ borderBottom: "1px solid #111" }}>
                 <td style={{ padding: "12px 16px", color: "var(--accent)", fontWeight: 600 }}>{p.id}</td>
                 <td style={{ padding: "12px 16px", color: "#fff", fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem", fontWeight: 600 }}>{p.name}</td>
@@ -51,7 +54,7 @@ export default function AdminPrintersPage() {
                 <td style={{ padding: "12px 16px" }}>
                   <select 
                     className="dash-select" 
-                    value={p.assignedWorker || ""} 
+                    value={p.assignedWorkerId || ""} 
                     onChange={(e) => handleAssignWorker(p.id, e.target.value)}
                     style={{ padding: "4px 8px", fontSize: "0.6rem", height: "auto" }}
                   >

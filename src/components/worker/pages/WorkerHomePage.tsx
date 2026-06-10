@@ -24,20 +24,8 @@ const NOTIFICATIONS = [
   { icon: <Package size={14} />, text: "New order #ORD12350 has been assigned to you.", time: "2 hours ago", color: "#00E5FF" },
 ];
 
-const PRINTERS = [
-  { id: "P-01", name: "Ender 5 Pro", temp: "210°C", bed: "60°C", status: "Printing", color: "#10B981" },
-  { id: "P-02", name: "Prusa i3 MK3S+", temp: "215°C", bed: "—", status: "Printing", color: "#10B981" },
-  { id: "P-03", name: "Anycubic Kobra", temp: "—", bed: "—", status: "Idle", color: "#555" },
-  { id: "P-04", name: "Elegoo Mars 3", temp: "—", bed: "—", status: "Maintenance", color: "#EF4444" },
-];
-
-const MATERIALS = [
-  { name: "PLA - Black", stock: "3.2 kg", pct: 64 },
-  { name: "PLA - White", stock: "2.1 kg", pct: 42 },
-  { name: "PLA - Grey", stock: "1.4 kg", pct: 28 },
-  { name: "PETG - Orange", stock: "1.8 kg", pct: 36 },
-  { name: "Resin - Grey", stock: "0.5 L", pct: 22 },
-];
+import { usePrinters } from "@/hooks/usePrinters";
+import { useMaterials } from "@/hooks/useMaterials";
 
 const SCHEDULE = [
   { time: "09:00 AM", label: "Shift Start" },
@@ -59,6 +47,8 @@ const COMPLETED = [
 export default function WorkerHomePage() {
   const { userProfile } = useAuth();
   const { orders: assignedOrders } = useOrders();
+  const { printers } = usePrinters();
+  const { materials } = useMaterials();
   const [taskTab, setTaskTab] = useState("All");
 
   // Compute real stats from assigned orders
@@ -364,19 +354,19 @@ export default function WorkerHomePage() {
             </h3>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
           </div>
-          {PRINTERS.map((p) => (
+          {printers.slice(0, 4).map((p) => (
             <div key={p.id} style={{
               padding: "12px 20px", borderBottom: "1px solid #111",
               display: "flex", alignItems: "center", gap: 14,
             }}>
               <div>
-                <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "#fff" }}>{p.id}</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555" }}>{p.name}</div>
+                <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "#fff" }}>{p.name}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555" }}>{p.type}</div>
               </div>
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-                {p.temp !== "—" && (
+                {p.currentTemp && p.currentTemp !== "—" && (
                   <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#888" }}>
-                    <Thermometer size={10} /> {p.temp}
+                    <Thermometer size={10} /> {p.currentTemp}
                   </span>
                 )}
                 <span className={`dash-badge ${p.status === "Printing" ? "dash-badge-green" : p.status === "Idle" ? "dash-badge-blue" : "dash-badge-red"}`}
@@ -403,18 +393,21 @@ export default function WorkerHomePage() {
           <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 0 }}>
-          {MATERIALS.map((m, i) => (
-            <div key={i} style={{ padding: "14px 20px", borderRight: "1px solid #111", borderBottom: "1px solid #111", display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: m.pct > 40 ? "var(--accent)" : m.pct > 25 ? "#EAB308" : "#EF4444" }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.8rem", color: "#ccc" }}>{m.name}</div>
+          {materials.slice(0, 5).map((m) => {
+            const pct = Math.min(100, Math.round((m.stock / 10) * 100)); // Assuming 10 is max capacity for percentage display
+            return (
+              <div key={m.id} style={{ padding: "14px 20px", borderRight: "1px solid #111", borderBottom: "1px solid #111", display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: pct > 40 ? "var(--accent)" : pct > 25 ? "#EAB308" : "#EF4444" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.8rem", color: "#ccc" }}>{m.name}</div>
+                </div>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888" }}>{m.stock} {m.unit}</span>
+                <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: pct > 40 ? "#ccc" : pct > 25 ? "#EAB308" : "#EF4444", width: 36, textAlign: "right" }}>
+                  {pct}%
+                </span>
               </div>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888" }}>{m.stock}</span>
-              <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: m.pct > 40 ? "#ccc" : m.pct > 25 ? "#EAB308" : "#EF4444", width: 36, textAlign: "right" }}>
-                {m.pct}%
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div style={{ padding: "12px 20px", textAlign: "right" }}>
           <button className="dash-btn-primary dash-btn-small">Request Material</button>

@@ -57,6 +57,10 @@ import AdminUsersPage from "@/components/admin/pages/AdminUsersPage";
 import AdminReportsPage from "@/components/admin/pages/AdminReportsPage";
 import AdminMaterialsPage from "@/components/admin/pages/AdminMaterialsPage";
 import AdminPrintersPage from "@/components/admin/pages/AdminPrintersPage";
+import AdminRolesPage from "@/components/admin/pages/AdminRolesPage";
+import AdminSettingsPage from "@/components/admin/pages/AdminSettingsPage";
+import AdminWebsiteSettingsPage from "@/components/admin/pages/AdminWebsiteSettingsPage";
+import AdminAnalyticsPage from "@/components/admin/pages/AdminAnalyticsPage";
 
 // ─── Splash Screen ──────────────────────────────────────────
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
@@ -199,6 +203,10 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "printers": return <AdminPrintersPage />;
       case "users": return <AdminUsersPage />;
       case "reports": return <AdminReportsPage />;
+      case "roles": return <AdminRolesPage />;
+      case "settings": return <AdminSettingsPage />;
+      case "website-settings": return <AdminWebsiteSettingsPage />;
+      case "analytics": return <AdminAnalyticsPage />;
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">

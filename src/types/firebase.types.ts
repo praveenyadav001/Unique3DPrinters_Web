@@ -151,3 +151,51 @@ export interface MaterialDoc {
   unit: string;
   isActive: boolean;
 }
+
+// ─── Printer ────────────────────────────────────────────────
+export interface PrinterDoc {
+  id: string;
+  name: string;
+  type: "FDM" | "Resin" | "SLA" | string;
+  status: "Active" | "Idle" | "Printing" | "Maintenance" | "Offline";
+  assignedWorkerId: string | null;
+  currentJobId: string | null;
+  currentJobName?: string;
+  currentTemp?: string;
+  currentBedTemp?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Maintenance Log ────────────────────────────────────────
+export interface MaintenanceLogDoc {
+  id: string;
+  printerId: string;
+  printerName: string;
+  issue: string;
+  priority: "Low" | "Medium" | "High";
+  status: "Scheduled" | "In Progress" | "Completed";
+  reportedBy: string; // Worker ID
+  reportedByName?: string;
+  resolvedAt?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Settings ───────────────────────────────────────────────
+export interface SystemSettingsDoc {
+  companyName: string;
+  supportEmail: string;
+  defaultCurrency: string;
+  orderPrefix: string;
+  updatedAt: Timestamp;
+}
+
+export interface WebsiteSettingsDoc {
+  heroHeadline: string;
+  heroSubheadline: string;
+  primaryAccent: string;
+  secondaryAccent: string;
+  activeBannerURL: string | null;
+  updatedAt: Timestamp;
+}
