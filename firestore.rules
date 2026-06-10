@@ -62,5 +62,29 @@ service cloud.firestore {
       allow create: if isAdmin();
     }
 
+    // Settings collection
+    match /settings/{settingId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Materials collection
+    match /materials/{materialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Printers collection
+    match /printers/{printerId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
   }
 }

@@ -1,15 +1,12 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, Search, UploadCloud } from "lucide-react";
-
-// Mock data to start with
-const INITIAL_DESIGNS = [
-  { id: "D1", name: "Modern Vase", category: "Home Decor", basePrice: 450, sales: 12 },
-  { id: "D2", name: "Articulated Dragon", category: "Toys", basePrice: 850, sales: 45 },
-  { id: "D3", name: "Headphone Stand", category: "Accessories", basePrice: 350, sales: 8 },
-];
+import { Plus, Edit2, Trash2, Search, UploadCloud, Loader } from "lucide-react";
+import { useDesigns } from "@/hooks/useDesigns";
+import { createDesign, deleteDesign } from "@/services/designs.service";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminDesignsPage() {
-  const [designs, setDesigns] = useState(INITIAL_DESIGNS);
+  const { designs, categories, loading } = useDesigns();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -20,16 +17,38 @@ export default function AdminDesignsPage() {
 
   const filtered = designs.filter(d => d.name.toLowerCase().includes(search.toLowerCase()));
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!newName || !newPrice) return;
-    setDesigns([...designs, { id: `D${Date.now()}`, name: newName, category: newCat, basePrice: Number(newPrice), sales: 0 }]);
-    setShowModal(false);
-    setNewName("");
-    setNewPrice("");
+    try {
+      await createDesign({
+        name: newName,
+        category: newCat,
+        price: Number(newPrice),
+        emoji: "📦",
+        imageURL: "",
+        description: "",
+        materials: [],
+        colors: [],
+        isActive: true,
+        stock: 10,
+        createdBy: user?.uid || "admin",
+      });
+      setShowModal(false);
+      setNewName("");
+      setNewPrice("");
+    } catch (error) {
+      console.error("Failed to create design", error);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setDesigns(designs.filter(d => d.id !== id));
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this design?")) {
+      try {
+        await deleteDesign(id);
+      } catch (error) {
+        console.error("Failed to delete design", error);
+      }
+    }
   };
 
   return (
@@ -61,12 +80,16 @@ export default function AdminDesignsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((d) => (
+            {loading ? (
+              <tr><td colSpan={5} style={{ padding: "16px", textAlign: "center", color: "#666" }}><Loader size={20} style={{ animation: "spin 1s linear infinite" }} /> Loading designs...</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={5} style={{ padding: "16px", textAlign: "center", color: "#666" }}>No designs found.</td></tr>
+            ) : filtered.map((d) => (
               <tr key={d.id} style={{ borderBottom: "1px solid #111" }}>
                 <td style={{ padding: "12px 16px", color: "#fff", fontWeight: 600, fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem" }}>{d.name}</td>
                 <td style={{ padding: "12px 16px", color: "#aaa" }}>{d.category}</td>
-                <td style={{ padding: "12px 16px", color: "var(--accent)" }}>₹{d.basePrice}</td>
-                <td style={{ padding: "12px 16px", color: "#ccc" }}>{d.sales}</td>
+                <td style={{ padding: "12px 16px", color: "var(--accent)" }}>₹{d.price}</td>
+                <td style={{ padding: "12px 16px", color: "#ccc" }}>{d.salesCount || 0}</td>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }}><Edit2 size={14} /></button>
@@ -97,6 +120,7 @@ export default function AdminDesignsPage() {
                   <option>Toys</option>
                   <option>Accessories</option>
                   <option>Miniatures</option>
+                  {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                 </select>
               </div>
 

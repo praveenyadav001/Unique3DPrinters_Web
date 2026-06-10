@@ -79,7 +79,7 @@ export default function AdminProductsPage() {
                     {d.name}
                   </td>
                   <td style={{ padding: "12px 16px", color: "#888" }}>{d.category}</td>
-                  <td style={{ padding: "12px 16px", color: "var(--accent)", fontWeight: 600 }}>₹{d.basePrice}</td>
+                  <td style={{ padding: "12px 16px", color: "var(--accent)", fontWeight: 600 }}>₹{d.price}</td>
                   <td style={{ padding: "12px 16px" }}>
                     <span className={`dash-badge ${d.isActive ? "dash-badge-green" : "dash-badge-red"}`}>
                       {d.isActive ? "Published" : "Draft"}

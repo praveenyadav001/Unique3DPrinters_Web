@@ -1,5 +1,57 @@
 import { Activity, Users, MousePointerClick, TrendingUp, DownloadCloud } from "lucide-react";
 
+// SVG Traffic Chart
+function TrafficChart() {
+  const data = [1200, 1900, 1500, 2200, 1800, 2800, 2400, 3200, 3800, 3100, 4200, 4800, 4500, 5200];
+  const w = 600, h = 250;
+  const max = Math.max(...data);
+  const min = Math.min(...data) * 0.8; // Give some bottom padding
+  const range = max - min;
+  
+  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * h}`).join(" ");
+  const areaPoints = `0,${h} ${points} ${w},${h}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h + 30}`} width="100%" height="100%" preserveAspectRatio="none" style={{ minHeight: 250 }}>
+      <defs>
+        <linearGradient id="trafficGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Grid lines */}
+      {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+        <line key={i} x1="0" y1={h * p} x2={w} y2={h * p} stroke="#1a1a1a" strokeWidth="1" />
+      ))}
+      <polygon points={areaPoints} fill="url(#trafficGrad)" />
+      <polyline points={points} fill="none" stroke="#8B5CF6" strokeWidth="3" />
+      
+      {/* Tooltip dot on highest point */}
+      {(() => {
+        const maxIdx = data.indexOf(max);
+        const cx = (maxIdx / (data.length - 1)) * w;
+        const cy = h - ((max - min) / range) * h;
+        return (
+          <g>
+            <circle cx={cx} cy={cy} r="5" fill="#8B5CF6" stroke="#0A0A0A" strokeWidth="2" />
+            <rect x={cx - 40} y={cy - 30} width="80" height="22" rx="4" fill="#1a1a1a" stroke="#333" strokeWidth="1" />
+            <text x={cx} y={cy - 15} textAnchor="middle" fill="#fff" fontFamily="'DM Mono', monospace" fontSize="10">
+              {max.toLocaleString()} visits
+            </text>
+          </g>
+        );
+      })()}
+      
+      {/* X axis labels */}
+      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((l, i) => (
+        <text key={i} x={(i / 6) * w} y={h + 20} fill="#555" fontFamily="'DM Mono', monospace" fontSize="10" textAnchor="middle">
+          {l}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
 export default function AdminAnalyticsPage() {
   return (
     <div className="dashboard-page">
@@ -38,10 +90,20 @@ export default function AdminAnalyticsPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
-        <div className="dash-card" style={{ minHeight: 350, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <Activity size={40} style={{ color: "#333", marginBottom: 16 }} />
-          <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#555" }}>Traffic Over Time</div>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444" }}>Chart component rendering goes here.</div>
+        <div className="dash-card" style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#fff", margin: 0 }}>
+              Traffic Over Time
+            </h3>
+            <select className="dash-select" style={{ width: "auto", padding: "6px 30px 6px 12px", fontSize: "0.7rem" }}>
+              <option>Last 7 Days</option>
+              <option>Last 30 Days</option>
+              <option>This Year</option>
+            </select>
+          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "flex-end" }}>
+            <TrafficChart />
+          </div>
         </div>
 
         <div className="dash-card">

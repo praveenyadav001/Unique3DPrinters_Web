@@ -7,6 +7,9 @@ export function subscribeToMaterials(callback: (data: MaterialDoc[]) => void) {
   return onSnapshot(q, (snap) => {
     const materials = snap.docs.map(d => ({ id: d.id, ...d.data() } as MaterialDoc));
     callback(materials);
+  }, (error) => {
+    console.error("Error fetching materials:", error);
+    callback([]);
   });
 }
 

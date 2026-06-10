@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Layout, Image, Palette, Save } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { updateSystemSettings } from "@/services/settings.service";
+import { updateWebsiteSettings } from "@/services/settings.service";
 
 export default function AdminWebsiteSettingsPage() {
-  const { systemSettings, loading } = useSettings();
+  const { websiteSettings, loading } = useSettings();
   const [formData, setFormData] = useState({
     heroHeadline: "",
     heroSubheadline: "",
@@ -14,20 +14,25 @@ export default function AdminWebsiteSettingsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (systemSettings) {
+    if (websiteSettings) {
       setFormData({
-        heroHeadline: systemSettings.heroHeadline || "Bring Your Ideas To Life",
-        heroSubheadline: systemSettings.heroSubheadline || "Professional 3D printing services for rapid prototyping and custom manufacturing.",
-        primaryAccentColor: systemSettings.primaryAccentColor || "#FF5722",
-        secondaryAccentColor: systemSettings.secondaryAccentColor || "#00E5FF"
+        heroHeadline: websiteSettings.heroHeadline || "Bring Your Ideas To Life",
+        heroSubheadline: websiteSettings.heroSubheadline || "Professional 3D printing services for rapid prototyping and custom manufacturing.",
+        primaryAccentColor: websiteSettings.primaryAccent || "#FF5722",
+        secondaryAccentColor: websiteSettings.secondaryAccent || "#00E5FF"
       });
     }
-  }, [systemSettings]);
+  }, [websiteSettings]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateSystemSettings(formData);
+      await updateWebsiteSettings({
+        heroHeadline: formData.heroHeadline,
+        heroSubheadline: formData.heroSubheadline,
+        primaryAccent: formData.primaryAccentColor,
+        secondaryAccent: formData.secondaryAccentColor
+      });
       alert("Website appearance settings saved successfully.");
     } catch (error) {
       console.error("Failed to save settings", error);

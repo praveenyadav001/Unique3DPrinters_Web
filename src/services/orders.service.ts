@@ -163,12 +163,19 @@ export function subscribeToCustomerOrders(
 ): Unsubscribe {
   const q = query(
     ordersRef,
-    where("customerId", "==", customerId),
-    orderBy("createdAt", "desc")
+    where("customerId", "==", customerId)
   );
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
+    orders.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      return (dateB || 0) - (dateA || 0);
+    });
     callback(orders);
+  }, (error) => {
+    console.error("Error fetching customer orders:", error);
+    callback([]);
   });
 }
 
@@ -179,12 +186,19 @@ export function subscribeToWorkerOrders(
 ): Unsubscribe {
   const q = query(
     ordersRef,
-    where("assignedWorkerId", "==", workerId),
-    orderBy("createdAt", "desc")
+    where("assignedWorkerId", "==", workerId)
   );
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
+    orders.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      return (dateB || 0) - (dateA || 0);
+    });
     callback(orders);
+  }, (error) => {
+    console.error("Error fetching worker orders:", error);
+    callback([]);
   });
 }
 
@@ -196,6 +210,9 @@ export function subscribeToAllOrders(
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
     callback(orders);
+  }, (error) => {
+    console.error("Error fetching all orders:", error);
+    callback([]);
   });
 }
 
@@ -208,5 +225,8 @@ export function subscribeToRecentOrders(
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
     callback(orders);
+  }, (error) => {
+    console.error("Error fetching recent orders:", error);
+    callback([]);
   });
 }

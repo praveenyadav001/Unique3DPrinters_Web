@@ -7,6 +7,9 @@ export function subscribeToPrinters(callback: (data: PrinterDoc[]) => void) {
   return onSnapshot(q, (snap) => {
     const printers = snap.docs.map(d => ({ id: d.id, ...d.data() } as PrinterDoc));
     callback(printers);
+  }, (error) => {
+    console.error("Error fetching printers:", error);
+    callback([]);
   });
 }
 

@@ -6,6 +6,7 @@ import {
 import type { AdminPage } from "../AdminSidebar";
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomers } from "@/hooks/useWorkers";
+import { useDesigns } from "@/hooks/useDesigns";
 
 interface AdminHomePageProps {
   onNavigate: (page: AdminPage) => void;
@@ -154,8 +155,13 @@ function SalesChart() {
 }
 
 export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
-  const { orders } = useOrders();
-  const { customers } = useCustomers();
+  const { orders, loading: ordersLoading } = useOrders();
+  const { customers, loading: customersLoading } = useCustomers();
+  const { designs, loading: designsLoading } = useDesigns();
+
+  if (ordersLoading || customersLoading || designsLoading) {
+    return <div style={{ padding: 60, textAlign: "center", color: "#666" }}>Loading dashboard data...</div>;
+  }
 
   // Computed real stats
   const totalOrders = orders.length;
@@ -163,6 +169,26 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
   const totalCustomers = customers.length;
   const pendingOrders = orders.filter((o) => o.status === "Pending" || o.status === "Processing").length;
   const completedOrders = orders.filter((o) => o.status === "Delivered").length;
+
+  const realTopDesigns = [...designs]
+    .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+    .slice(0, 5)
+    .map((d, i) => ({
+      rank: i + 1,
+      name: d.name,
+      sales: d.salesCount || 0,
+      price: `₹${d.price}`,
+      emoji: d.emoji || "📦",
+    }));
+
+  const realLowStock = [...designs]
+    .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+    .slice(0, 4)
+    .map((d) => ({
+      name: d.name,
+      stock: d.stock || 0,
+      emoji: d.emoji || "📦",
+    }));
 
   const STATS = [
     { label: "Total Orders", value: totalOrders.toLocaleString(), change: "Real-time data", icon: <Package size={18} />, color: "var(--accent)" },
@@ -301,7 +327,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
             </h3>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
           </div>
-          {TOP_DESIGNS.map((d) => (
+          {realTopDesigns.length > 0 ? realTopDesigns.map((d) => (
             <div key={d.rank} style={{
               padding: "12px 20px", borderBottom: "1px solid #111",
               display: "flex", alignItems: "center", gap: 12,
@@ -320,7 +346,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
               </div>
               <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: "var(--accent)" }}>{d.price}</span>
             </div>
-          ))}
+          )) : <div style={{ padding: 20, textAlign: "center", color: "#666" }}>No designs yet.</div>}
         </div>
 
         {/* Revenue Overview */}
@@ -385,7 +411,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
               </tr>
             </thead>
             <tbody>
-              {LOW_STOCK.map((d, i) => (
+              {realLowStock.length > 0 ? realLowStock.map((d, i) => (
                 <tr key={i} style={{ borderBottom: "1px solid #111" }}>
                   <td style={{ padding: "10px 16px", color: "#ccc" }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -399,7 +425,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
                     </span>
                   </td>
                 </tr>
-              ))}
+              )) : <tr><td colSpan={3} style={{ padding: 20, textAlign: "center", color: "#666" }}>Stock levels are good.</td></tr>}
             </tbody>
           </table>
         </div>

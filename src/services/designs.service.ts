@@ -17,10 +17,18 @@ const categoriesRef = collection(db, "categories");
 export function subscribeToDesigns(
   callback: (designs: DesignDoc[]) => void
 ): Unsubscribe {
-  const q = query(designsRef, where("isActive", "==", true), orderBy("createdAt", "desc"));
+  const q = query(designsRef, where("isActive", "==", true));
   return onSnapshot(q, (snap) => {
     const designs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as DesignDoc));
+    designs.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      return (dateB || 0) - (dateA || 0);
+    });
     callback(designs);
+  }, (error) => {
+    console.error("Error fetching designs:", error);
+    callback([]);
   });
 }
 
@@ -31,12 +39,19 @@ export function subscribeToDesignsByCategory(
   const q = query(
     designsRef,
     where("isActive", "==", true),
-    where("category", "==", category),
-    orderBy("createdAt", "desc")
+    where("category", "==", category)
   );
   return onSnapshot(q, (snap) => {
     const designs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as DesignDoc));
+    designs.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      return (dateB || 0) - (dateA || 0);
+    });
     callback(designs);
+  }, (error) => {
+    console.error("Error fetching designs by category:", error);
+    callback([]);
   });
 }
 
@@ -74,10 +89,14 @@ export async function deleteDesign(designId: string): Promise<void> {
 export function subscribeToCategories(
   callback: (categories: CategoryDoc[]) => void
 ): Unsubscribe {
-  const q = query(categoriesRef, where("isActive", "==", true), orderBy("order", "asc"));
+  const q = query(categoriesRef, where("isActive", "==", true));
   return onSnapshot(q, (snap) => {
     const categories = snap.docs.map((d) => ({ id: d.id, ...d.data() } as CategoryDoc));
+    categories.sort((a, b) => (a.order || 0) - (b.order || 0));
     callback(categories);
+  }, (error) => {
+    console.error("Error fetching categories:", error);
+    callback([]);
   });
 }
 
