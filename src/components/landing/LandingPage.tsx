@@ -1,28 +1,51 @@
+import React, { useEffect } from "react";
 import {
   Search, ShoppingCart, User, ArrowRight,
   CheckCircle2, Shield, Truck, Headphones, Award,
   PenTool, UploadCloud, Settings2, Package,
   MapPin, Phone, Mail, Send, ChevronRight, Star,
 } from "lucide-react";
+import { CardStack, CardStackItem } from "../ui/card-stack";
+import { ParticleTextEffect } from "../ui/particle-text-effect";
+import { HowItWorksSection } from "./HowItWorksSection";
+import heroVideo from "@/assets/background video/slight_motion_effect_video_for.mp4";
 
 interface LandingPageProps {
   onLoginClick: () => void;
 }
 
 const CATEGORIES = [
-  { name: "Flip Name", type: "Personalized", emoji: "💫" },
-  { name: "Keychain", type: "Customize", emoji: "🔑" },
-  { name: "Flower Design", type: "Decorative", emoji: "🌹" },
-  { name: "Letter Name", type: "Personalized", emoji: "🔤" },
-  { name: "Bike Number Plate", type: "Customize", emoji: "🏍️" },
-  { name: "Home Decor", type: "Stylish", emoji: "🏠" },
-  { name: "Toys & Models", type: "Fun & Creative", emoji: "🐘" },
-  { name: "More Categories", type: "Explore all", emoji: "➕" },
+  { name: "Prototyping", type: "FDM & SLA", emoji: "⚙️", image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=800&q=80" },
+  { name: "Miniatures", type: "High-Res Resin", emoji: "🧙‍♂️", image: "https://images.unsplash.com/photo-1622322306912-7013ba0c6c84?auto=format&fit=crop&w=800&q=80" },
+  { name: "Architecture", type: "Detailed Models", emoji: "🏢", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" },
+  { name: "Jewelry", type: "Castable Wax", emoji: "💎", image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=80" },
+  { name: "Automotive", type: "Strong & Heat Resistant", emoji: "🏎️", image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=800&q=80" },
 ];
 
+const CARD_STACK_ITEMS: CardStackItem[] = CATEGORIES.map((cat, i) => ({
+  id: i,
+  title: cat.name,
+  description: `Professional ${cat.type} printing for your unique requirements.`,
+  imageSrc: cat.image,
+  tag: cat.emoji,
+}));
+
 export default function LandingPage({ onLoginClick }: LandingPageProps) {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("revealed");
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
+
+    document.querySelectorAll(".reveal-on-scroll").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div style={{ background: "#0A0A0A", minHeight: "100vh" }}>
+    <div style={{ background: "#0A0A0A", minHeight: "100vh", "--accent": "#00E5FF", "--accent-rgb": "0, 229, 255", "--accent-secondary": "#ffffff" } as any}>
       {/* ═══ NAVBAR ═══════════════════════════════════════ */}
       <nav className="landing-nav">
         <div className="landing-nav-logo">
@@ -89,143 +112,60 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
       </nav>
 
       {/* ═══ HERO ════════════════════════════════════════ */}
-      <section className="landing-hero">
-        <div className="landing-hero-grid" />
-        <div className="landing-hero-content landing-animate">
-          <h1 style={{
-            fontFamily: "'Rajdhani', sans-serif", fontWeight: 800,
-            fontSize: "clamp(2rem, 5vw, 3.2rem)", lineHeight: 1.1,
-            color: "#fff", margin: "0 0 16px",
-          }}>
-            BRING YOUR IDEAS<br />
-            <span style={{ color: "var(--accent)" }}>TO LIFE WITH 3D PRINTING</span>
-          </h1>
-          <p style={{
-            fontFamily: "'DM Mono', monospace", fontSize: "0.8rem",
-            color: "#666", maxWidth: 400, lineHeight: 1.7, margin: "0 0 32px",
-          }}>
-            Design, customize and order high quality<br />
-            3D printed products easily.
-          </p>
-
-          <div style={{ display: "flex", gap: 14, marginBottom: 0 }}>
-            <button className="dash-btn-primary" onClick={onLoginClick} style={{ padding: "13px 28px" }}>
-              Start Designing <PenTool size={14} />
-            </button>
-            <button className="dash-btn-secondary" onClick={onLoginClick} style={{ padding: "13px 28px" }}>
-              Upload Design <UploadCloud size={14} />
-            </button>
-          </div>
-
-          {/* Trust badges */}
-          <div className="landing-trust-bar landing-animate-d2">
-            {[
-              { icon: <CheckCircle2 size={14} />, label: "High Quality", sub: "Premium Materials" },
-              { icon: <Truck size={14} />, label: "Fast Delivery", sub: "On-time Guarantee" },
-              { icon: <Shield size={14} />, label: "Secure Payments", sub: "100% Protected" },
-              { icon: <Headphones size={14} />, label: "24/7 Support", sub: "We're here to help" },
-            ].map((t, i) => (
-              <div key={i} className="landing-trust-item">
-                <span className="trust-icon">{t.icon}</span>
-                <div>
-                  <div className="trust-label">{t.label}</div>
-                  <div className="trust-sub">{t.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <section className="hero-centered relative">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{ opacity: 0.3 }}
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
+        <div className="hero-mesh-bg z-0" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/50 to-[#050505] z-0 pointer-events-none" />
+        
+        <div className="hero-pill-badge z-10">
+          <span>✨ The Future of 3D Printing</span>
+        </div>
+        <div className="z-10 -mt-8 -mb-4 w-full flex justify-center relative">
+          <ParticleTextEffect words={["BRING YOUR IDEAS\nTO LIFE"]} />
+        </div>
+        <p className="hero-subtitle z-10 relative">
+          Design, customize, and order high quality 3D printed products easily. Upload your STL, OBJ, or 3MF files and get them delivered to your doorstep.
+        </p>
+        <div style={{ display: "flex", gap: 14, marginBottom: 0 }} className="z-10 relative">
+          <button className="dash-btn-primary" onClick={onLoginClick} style={{ padding: "14px 32px", fontSize: "1rem" }}>
+            Start Designing <PenTool size={16} />
+          </button>
+          <button className="dash-btn-secondary" onClick={onLoginClick} style={{ padding: "14px 32px", fontSize: "1rem" }}>
+            Upload Design <UploadCloud size={16} />
+          </button>
         </div>
 
-        {/* Hero visual — Immersive Floating 3D Graphic */}
-        <div className="landing-hero-visual landing-animate-d1 animate-floating" style={{ position: "relative" }}>
-          {/* Glowing backdrop */}
-          <div style={{
-            position: "absolute", inset: 20,
-            background: "radial-gradient(circle, rgba(var(--accent-rgb), 0.4) 0%, transparent 70%)",
-            filter: "blur(40px)", zIndex: 0
-          }} />
-          
-          <img 
-            src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=600&q=80" 
-            alt="3D Printed object floating" 
-            style={{
-              width: "100%", maxWidth: 450,
-              borderRadius: 24,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)",
-              position: "relative", zIndex: 1,
-              filter: "brightness(0.9) contrast(1.1)"
-            }} 
-          />
-          
-          {/* Floating UI Elements */}
-          <div className="glass-card" style={{
-            position: "absolute", bottom: 40, left: -20, zIndex: 2,
-            padding: "12px 16px", borderRadius: 12,
-            display: "flex", alignItems: "center", gap: 12
-          }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "#000" }}>
-              <CheckCircle2 size={16} />
-            </div>
-            <div>
-              <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "#fff" }}>Ready to Print</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#888" }}>High precision guaranteed</div>
-            </div>
-          </div>
-        </div>
       </section>
 
-      {/* ═══ HOW IT WORKS + WHY CHOOSE US ════════════════ */}
-      <section className="landing-section">
-        <div className="landing-how-grid">
-          <div>
-            <div className="landing-section-title">How It Works</div>
-            <div className="landing-steps">
-              {[
-                { num: "1", icon: <PenTool size={18} />, title: "Design", desc: "Create your design or choose a template." },
-                { num: "2", icon: <UploadCloud size={18} />, title: "Upload", desc: "Upload your 3D file (STL, OBJ, 3MF)." },
-                { num: "3", icon: <Settings2 size={18} />, title: "Customize", desc: "Select material, size, color and quantity." },
-                { num: "4", icon: <Package size={18} />, title: "Order", desc: "Review and place your order." },
-              ].map((step, i, arr) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                  <div className="landing-step">
-                    <div className="landing-step-icon">{step.icon}</div>
-                    <div className="landing-step-content">
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div className="landing-step-num"><span>{step.num}</span></div>
-                        <div className="landing-step-title">{step.title}</div>
-                      </div>
-                      <div className="landing-step-desc">{step.desc}</div>
-                    </div>
-                  </div>
-                  {i < arr.length - 1 && (
-                    <ArrowRight size={14} className="landing-step-arrow" />
-                  )}
-                </div>
-              ))}
-            </div>
+      {/* ═══ CONSOLIDATED TRUST & STATS STRIP ════════════ */}
+      <section className="consolidated-strip reveal-on-scroll">
+        {[
+          { val: "10K+", label: "Orders Delivered" },
+          { val: "98%", label: "Satisfaction Rate" },
+          { val: "24/7", label: "Expert Support" },
+          { val: "100%", label: "Secure Payments" },
+        ].map((s, i) => (
+          <div key={i} className="strip-item">
+            <div className="strip-val">{s.val}</div>
+            <div className="strip-label">{s.label}</div>
           </div>
-
-          {/* Why Choose Us */}
-          <div className="landing-why-card">
-            <div className="landing-section-title" style={{ marginBottom: 16 }}>Why Choose Us?</div>
-            {[
-              "Advanced 3D Printing Technology",
-              "Wide Range of Materials",
-              "Precision & Quality Assurance",
-              "Affordable Pricing",
-              "Fast & Reliable Delivery",
-            ].map((text, i) => (
-              <div key={i} className="landing-why-item">
-                <div className="landing-why-check"><CheckCircle2 size={10} /></div>
-                <span className="landing-why-text">{text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </section>
+
+      {/* ═══ HOW IT WORKS REDESIGN ═════════════════════ */}
+      <HowItWorksSection />
 
       {/* ═══ EXPLORE CATEGORIES ═══════════════════════════ */}
-      <section className="landing-section" style={{ paddingTop: 0 }}>
+      <section className="landing-section reveal-on-scroll" style={{ paddingTop: 80, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <div className="landing-section-title" style={{ margin: 0, flex: "none" }}>
             Explore Our Top Categories
@@ -239,22 +179,20 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
           </button>
         </div>
 
-        <div className="landing-categories-grid">
-          {CATEGORIES.map((cat, i) => (
-            <div key={i} className="landing-category-card glass-card" onClick={onLoginClick}>
-              <div className="cat-image">{cat.emoji}</div>
-              <div className="cat-name">{cat.name}</div>
-              <div className="cat-type">{cat.type}</div>
-              <div className="cat-link">
-                Explore <ArrowRight size={10} />
-              </div>
-            </div>
-          ))}
+        <div className="w-full py-12 flex justify-center">
+          <CardStack
+            items={CARD_STACK_ITEMS}
+            initialIndex={0}
+            autoAdvance
+            intervalMs={2500}
+            pauseOnHover
+            showDots
+          />
         </div>
       </section>
 
       {/* ═══ TESTIMONIALS MARQUEE ═════════════════════════ */}
-      <section style={{ padding: "40px 0" }}>
+      <section style={{ padding: "60px 0", textAlign: "center" }} className="reveal-on-scroll">
         <div className="marquee-container">
           <div className="marquee-content">
             {/* Duplicate list to make infinite scroll smooth */}
@@ -286,47 +224,6 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
           </div>
         </div>
       </section>
-
-      {/* ═══ STATS BAR ═══════════════════════════════════ */}
-      <div className="landing-stats-bar">
-        {[
-          { icon: <Package size={20} />, value: "10K+", label: "Orders Delivered" },
-          { icon: <User size={20} />, value: "5K+", label: "Happy Customers" },
-          { icon: <Award size={20} />, value: "98%", label: "Satisfaction Rate" },
-          { icon: <Truck size={20} />, value: "24-48 Hrs", label: "Fast Delivery" },
-        ].map((s, i) => (
-          <div key={i} className="landing-stat">
-            <div className="landing-stat-icon">{s.icon}</div>
-            <div>
-              <div className="landing-stat-value">{s.value}</div>
-              <div className="landing-stat-label">{s.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ═══ TRUST STRIP ═════════════════════════════════ */}
-      <div className="landing-trust-strip">
-        {[
-          { icon: <Shield size={20} />, label: "Secure Payments", sub: "100% safe & protected" },
-          { icon: <Award size={20} />, label: "Premium Quality", sub: "High quality materials" },
-          { icon: <Truck size={20} />, label: "Fast Delivery", sub: "On-time, every time" },
-          { icon: <Headphones size={20} />, label: "24/7 Support", sub: "We're here to help" },
-          { icon: <CheckCircle2 size={20} />, label: "Satisfaction Guaranteed", sub: "100% satisfaction promise" },
-        ].map((t, i) => (
-          <div key={i} className="landing-trust-strip-item">
-            <div className="landing-trust-strip-icon">{t.icon}</div>
-            <div>
-              <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "#fff" }}>
-                {t.label}
-              </div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555" }}>
-                {t.sub}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* ═══ FOOTER ══════════════════════════════════════ */}
       <footer className="landing-footer">
