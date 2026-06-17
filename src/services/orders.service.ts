@@ -71,6 +71,12 @@ export async function createOrder(data: {
   };
 
   const docRef = await addDoc(ordersRef, orderData);
+
+  // Trigger 'Placed' email
+  if (data.customerEmail) {
+    await triggerOrderEmail(orderNumber, "Placed", data.customerEmail, data.customerName);
+  }
+
   return docRef.id;
 }
 
@@ -99,23 +105,35 @@ export async function updateOrderStatus(
       if (docSnap.exists()) {
         const orderData = docSnap.data();
         if (orderData.customerEmail) {
-          await fetch("/api/sendEmail", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              orderId: orderData.orderNumber || orderId,
-              status: status,
-              customerEmail: orderData.customerEmail,
-              customerName: orderData.customerName,
-            })
-          });
+          await triggerOrderEmail(
+            orderData.orderNumber || orderId,
+            status,
+            orderData.customerEmail,
+            orderData.customerName || "Customer"
+          );
         }
       }
     } catch (e) {
       console.error("Failed to trigger email API", e);
     }
+  }
+}
+
+// ─── Trigger Email Manually ─────────────────────────────────
+export async function triggerOrderEmail(
+  orderId: string,
+  status: string,
+  customerEmail: string,
+  customerName: string
+): Promise<void> {
+  try {
+    await fetch("/api/sendEmail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, status, customerEmail, customerName }),
+    });
+  } catch (e) {
+    console.error("Failed to trigger email API manually", e);
   }
 }
 
@@ -168,8 +186,8 @@ export function subscribeToCustomerOrders(
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
     orders.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt as any).getTime();
       return (dateB || 0) - (dateA || 0);
     });
     callback(orders);
@@ -191,8 +209,8 @@ export function subscribeToWorkerOrders(
   return onSnapshot(q, (snap) => {
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() } as OrderDoc));
     orders.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt as any).getTime();
       return (dateB || 0) - (dateA || 0);
     });
     callback(orders);

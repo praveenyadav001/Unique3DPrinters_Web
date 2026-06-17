@@ -82,22 +82,34 @@ function DonutChart({ statusData }: { statusData: typeof ORDER_STATUS_FALLBACK }
 }
 
 // SVG bar chart for revenue
-function RevenueChart() {
+function RevenueChart({ orders }: { orders: any[] }) {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const values = [8, 6, 10, 7, 14, 11, 9, 12, 15, 18, 13, 16];
-  const max = Math.max(...values);
+  const currentYear = new Date().getFullYear();
+  
+  // Aggregate revenue by month
+  const monthlyRevenue = new Array(12).fill(0);
+  orders.forEach((o) => {
+    if (o.total && o.createdAt) {
+      const date = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+      if (date.getFullYear() === currentYear) {
+        monthlyRevenue[date.getMonth()] += o.total;
+      }
+    }
+  });
+
+  const max = Math.max(...monthlyRevenue, 1); // Avoid division by 0
   const barW = 24;
   const gap = 10;
   const chartH = 120;
 
   return (
     <svg viewBox={`0 0 ${months.length * (barW + gap) + 10} ${chartH + 30}`} width="100%" height={chartH + 30}>
-      {values.map((v, i) => {
+      {monthlyRevenue.map((v, i) => {
         const h = (v / max) * chartH;
         const x = i * (barW + gap) + 10;
         return (
           <g key={i}>
-            <rect x={x} y={chartH - h} width={barW} height={h} rx={3}
+            <rect x={x} y={chartH - h} width={barW} height={h || 1} rx={3}
               fill="var(--accent)" opacity={0.75 + (v / max) * 0.25}
             />
             <text x={x + barW / 2} y={chartH + 16} textAnchor="middle"
@@ -110,11 +122,36 @@ function RevenueChart() {
 }
 
 // SVG sales line chart
-function SalesChart() {
-  const data = [30, 45, 35, 60, 50, 70, 55, 80, 90, 75, 100, 120, 95, 145];
+function SalesChart({ orders }: { orders: any[] }) {
+  // Get last 7 days sales
+  const days = 7;
+  const data = new Array(days).fill(0);
+  const labels = new Array(days).fill("");
+  const now = new Date();
+  
+  for (let i = 0; i < days; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (days - 1 - i));
+    labels[i] = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+  }
+
+  orders.forEach((o) => {
+    if (o.total && o.createdAt) {
+      const date = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays <= days) {
+        const index = days - diffDays;
+        if (index >= 0 && index < days) {
+          data[index] += o.total;
+        }
+      }
+    }
+  });
+
   const w = 500, h = 140;
-  const max = Math.max(...data);
-  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - (v / max) * h}`).join(" ");
+  const max = Math.max(...data, 1); // Avoid division by 0
+  const points = data.map((v, i) => `${(i / (Math.max(1, data.length - 1))) * w},${h - (v / max) * h}`).join(" ");
   const areaPoints = `0,${h} ${points} ${w},${h}`;
 
   return (
@@ -134,21 +171,22 @@ function SalesChart() {
       {/* Tooltip dot on highest */}
       {(() => {
         const maxIdx = data.indexOf(max);
-        const cx = (maxIdx / (data.length - 1)) * w;
+        if (max === 1 && data[maxIdx] === 0) return null; // don't show dot if no sales
+        const cx = (maxIdx / (Math.max(1, data.length - 1))) * w;
         const cy = h - (max / max) * h;
         return (
           <>
             <circle cx={cx} cy={cy} r="4" fill="var(--accent)" stroke="#0A0A0A" strokeWidth="2" />
             <rect x={cx - 35} y={cy - 28} width="70" height="20" rx="4" fill="#1a1a1a" stroke="#333" strokeWidth="0.5" />
             <text x={cx} y={cy - 14} textAnchor="middle" fill="#fff" fontFamily="'DM Mono', monospace" fontSize="8">
-              ₹1,45,230
+              ₹{max.toLocaleString()}
             </text>
           </>
         );
       })()}
       {/* X axis labels */}
-      {["01 May", "05 May", "10 May", "15 May", "20 May", "25 May", "31 May"].map((l, i) => (
-        <text key={i} x={(i / 6) * w} y={h + 14} fill="#444" fontFamily="'DM Mono', monospace" fontSize="7">{l}</text>
+      {labels.map((l, i) => (
+        <text key={i} x={(i / (days - 1)) * w} y={h + 14} fill="#444" fontFamily="'DM Mono', monospace" fontSize="7">{l}</text>
       ))}
     </svg>
   );
@@ -260,7 +298,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
               <option>This Year</option>
             </select>
           </div>
-          <SalesChart />
+          <SalesChart orders={orders} />
         </div>
 
         <div className="dash-card" style={{ padding: 0, overflow: "hidden" }}>
@@ -360,7 +398,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
               <option>Last Year</option>
             </select>
           </div>
-          <RevenueChart />
+          <RevenueChart orders={orders} />
         </div>
       </div>
 

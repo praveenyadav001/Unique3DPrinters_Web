@@ -123,6 +123,7 @@ export interface OrderDoc {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   deliveredAt?: Timestamp;
+  trackingNumber?: string;
 }
 
 // ─── Cart ────────────────────────────────────────────────────
