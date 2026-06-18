@@ -61,8 +61,6 @@ export default function WorkerHomePage() {
     { time: shiftEnd, label: "Shift End" },
   ];
 
-  const inProgressOrders = assignedOrders.filter(o => o.status === "Processing" || o.status === "Printing");
-  const completedOrdersList = assignedOrders.filter(o => o.status === "Delivered" || o.status === "Shipped").slice(0, 4);
 
   // Compute real stats from assigned orders
   const totalTasks = assignedOrders.length;
@@ -251,52 +249,58 @@ export default function WorkerHomePage() {
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
           </div>
 
-          {/* Featured item */}
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid #111" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "var(--accent)" }}>#{IN_PROGRESS[0].id}</span>
-            </div>
-            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.85rem", color: "#fff", marginBottom: 4 }}>
-              {IN_PROGRESS[0].name}
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555", marginBottom: 12 }}>
-              <span>Printer: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].printer}</span></span>
-              <span>Material: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].material}</span></span>
-              <span>Layer: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].layer}</span></span>
-              <span>Time Left: <span style={{ color: "var(--accent)" }}>{IN_PROGRESS[0].timeLeft}</span></span>
-            </div>
-            {/* Progress bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ flex: 1, height: 6, background: "#1a1a1a", borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${IN_PROGRESS[0].progress}%`, height: "100%", background: "var(--accent)", borderRadius: 3, transition: "width 0.5s" }} />
-              </div>
-              <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "var(--accent)" }}>
-                {IN_PROGRESS[0].progress}%
-              </span>
-            </div>
-          </div>
-
-          {/* Other items */}
-          {inProgressOrders.slice(1).map((item) => (
-            <div key={item.id} style={{ padding: "12px 20px", borderBottom: "1px solid #111", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "var(--accent)" }}>#{item.orderNumber}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#555" }}>{item.assignedPrinterName || "—"}</span>
+          {IN_PROGRESS.length > 0 ? (
+            <>
+              {/* Featured item */}
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #111" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "var(--accent)" }}>#{IN_PROGRESS[0].id}</span>
                 </div>
-                <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.8rem", color: "#ccc", margin: "4px 0" }}>
-                  {item.items?.[0]?.designName || "Custom Design"}
+                <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.85rem", color: "#fff", marginBottom: 4 }}>
+                  {IN_PROGRESS[0].name}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ flex: 1, height: 4, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
-                    <div style={{ width: `${item.printProgress || 0}%`, height: "100%", background: "var(--accent)", borderRadius: 2 }} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555", marginBottom: 12 }}>
+                  <span>Printer: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].printer}</span></span>
+                  <span>Material: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].material}</span></span>
+                  <span>Layer: <span style={{ color: "#ccc" }}>{IN_PROGRESS[0].layer}</span></span>
+                  <span>Time Left: <span style={{ color: "var(--accent)" }}>{IN_PROGRESS[0].timeLeft}</span></span>
+                </div>
+                {/* Progress bar */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, height: 6, background: "#1a1a1a", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${IN_PROGRESS[0].progress}%`, height: "100%", background: "var(--accent)", borderRadius: 3, transition: "width 0.5s" }} />
                   </div>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#888" }}>{item.printProgress || 0}%</span>
+                  <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "var(--accent)" }}>
+                    {IN_PROGRESS[0].progress}%
+                  </span>
                 </div>
               </div>
+
+              {/* Other items */}
+              {inProgressOrders.slice(1).map((item) => (
+                <div key={item.id} style={{ padding: "12px 20px", borderBottom: "1px solid #111", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "var(--accent)" }}>#{item.orderNumber}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#555" }}>{item.assignedPrinterName || "—"}</span>
+                    </div>
+                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.8rem", color: "#ccc", margin: "4px 0" }}>
+                      {item.items?.[0]?.designName || "Custom Design"}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, height: 4, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ width: `${item.printProgress || 0}%`, height: "100%", background: "var(--accent)", borderRadius: 2 }} />
+                      </div>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#888" }}>{item.printProgress || 0}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <div style={{ padding: "20px", textAlign: "center", color: "#555", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem" }}>
+              No items currently in progress.
             </div>
-          ))}
-        </>
           )}
       </div>
 
@@ -308,26 +312,28 @@ export default function WorkerHomePage() {
           </h3>
           <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
         </div>
-        {NOTIFICATIONS.map((n, i) => (
-          <div key={i} style={{
-            padding: "12px 20px", borderBottom: "1px solid #111",
-            display: "flex", gap: 10, alignItems: "flex-start",
-          }}>
-            <div style={{ color: n.color, marginTop: 2, flexShrink: 0 }}>{n.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#ccc", lineHeight: 1.5 }}>
-                {n.text}
-              </div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#444", marginTop: 4 }}>
-                {n.time}
+        {NOTIFICATIONS.length > 0 ? (
+          NOTIFICATIONS.map((n, i) => (
+            <div key={i} style={{
+              padding: "12px 20px", borderBottom: "1px solid #111",
+              display: "flex", gap: 10, alignItems: "flex-start",
+            }}>
+              <div style={{ color: n.color, marginTop: 2, flexShrink: 0 }}>{n.icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#ccc", lineHeight: 1.5 }}>
+                  {n.text}
+                </div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#444", marginTop: 4 }}>
+                  {n.time}
+                </div>
               </div>
             </div>
+          ))
+        ) : (
+          <div style={{ padding: "20px", textAlign: "center", color: "#555", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem" }}>
+            No recent notifications.
           </div>
-        )) : (
-        <div style={{ padding: "20px", textAlign: "center", color: "#555", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem" }}>
-          No recent notifications.
-        </div>
-          )}
+        )}
       </div>
     </div>
 

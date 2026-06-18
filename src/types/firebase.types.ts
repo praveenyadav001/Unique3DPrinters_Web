@@ -64,6 +64,7 @@ export type OrderStatus =
   | "Confirmed"
   | "Processing"
   | "Printing"
+  | "Post Processing"
   | "Shipped"
   | "Delivered"
   | "Cancelled";

@@ -35,7 +35,7 @@ export function useCart() {
 
   const addItem = useCallback(
     async (item: Omit<CartItemDoc, "id" | "addedAt">) => {
-      if (!user) return;
+      if (!user) throw new Error("You must be logged in to add items to cart.");
       await addToCartService(user.uid, item);
     },
     [user]

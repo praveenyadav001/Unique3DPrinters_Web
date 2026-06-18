@@ -61,6 +61,7 @@ import AdminRolesPage from "@/components/admin/pages/AdminRolesPage";
 import AdminSettingsPage from "@/components/admin/pages/AdminSettingsPage";
 import AdminWebsiteSettingsPage from "@/components/admin/pages/AdminWebsiteSettingsPage";
 import AdminAnalyticsPage from "@/components/admin/pages/AdminAnalyticsPage";
+import AdminUploadDesignPage from "@/components/admin/pages/AdminUploadDesignPage";
 
 // ─── Splash Screen ──────────────────────────────────────────
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
@@ -198,7 +199,7 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "orders": return <AdminOrdersPage />;
       case "customers": return <AdminCustomersPage />;
       case "designs": return <AdminDesignsPage />;
-      case "upload-designs": return <AdminDesignsPage />;
+      case "upload-designs": return <AdminUploadDesignPage />;
       case "products": return <AdminProductsPage />;
       case "categories": return <AdminCategoriesPage />;
       case "materials": return <AdminMaterialsPage />;

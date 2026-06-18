@@ -9,6 +9,7 @@ interface CustomizeDesignPageProps {
 
 export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageProps) {
   const { addItem } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
   const [step, setStep] = useState(1);
   const [name1, setName1] = useState("");
   const [name2, setName2] = useState("");
@@ -30,17 +31,30 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
   const price = 299 * quantity;
 
   const handleAddToCart = async () => {
-    await addItem({
-      designId: "",
-      name: `Flip Name: ${name1} ❤ ${name2}`,
-      material,
-      color,
-      size: "100%",
-      quantity,
-      price: 299,
-      imageURL: "",
-    });
-    setStep(5); // success step
+    if (!name1.trim() || !name2.trim()) {
+      alert("Please enter both names before adding to cart.");
+      setStep(1);
+      return;
+    }
+    setIsAdding(true);
+    try {
+      await addItem({
+        designId: "flip-name-custom",
+        name: `Flip Name: ${name1} ❤ ${name2}`,
+        material,
+        color,
+        size: "100%",
+        quantity,
+        price: 299,
+        imageURL: "",
+      });
+      setStep(5); // success step
+    } catch (err: any) {
+      console.error("Add to cart failed:", err);
+      alert(err.message || "Failed to add to cart.");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
@@ -358,8 +372,8 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
                   Next <ArrowRight size={14} />
                 </button>
               ) : (
-                <button className="dash-btn-primary dash-btn-small" onClick={handleAddToCart}>
-                  Add to Cart
+                <button className="dash-btn-primary dash-btn-small" onClick={handleAddToCart} disabled={isAdding}>
+                  {isAdding ? "Adding..." : "Add to Cart"}
                 </button>
               )}
             </div>

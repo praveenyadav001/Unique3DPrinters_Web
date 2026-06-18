@@ -98,8 +98,9 @@ export async function updateOrderStatus(
     ...(status === "Delivered" ? { deliveredAt: serverTimestamp() } : {}),
   });
 
-  // Trigger email via Vercel Serverless Function if Shipped or Delivered
-  if (status === "Shipped" || status === "Delivered") {
+  // Trigger email via Vercel Serverless Function if status warrants it
+  const notifyStatuses = ["Shipped", "Delivered", "Printing", "Cancelled"];
+  if (notifyStatuses.includes(status)) {
     try {
       const docSnap = await getDoc(ref);
       if (docSnap.exists()) {
