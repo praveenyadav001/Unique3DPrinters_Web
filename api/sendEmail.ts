@@ -16,11 +16,15 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const emailSubject = `Order Update: Your Unique3DPrinters order is now ${status}!`;
+    const isPlaced = status === 'Placed';
+    const emailSubject = isPlaced 
+      ? `Order Confirmed: Thank you for your order #${orderId}!`
+      : `Order Update: Your Unique3DPrinters order is now ${status}!`;
+
     const emailHtml = `
       <div style="font-family: sans-serif; color: #333;">
         <h2>Hello ${customerName || 'Customer'},</h2>
-        <p>Great news! Your 3D printing order (<strong>#${orderId}</strong>) has been updated.</p>
+        <p>${isPlaced ? `Great news! We've received your 3D printing order (<strong>#${orderId}</strong>).` : `Great news! Your 3D printing order (<strong>#${orderId}</strong>) has been updated.`}</p>
         <p>Current Status: <strong style="color: #2563EB;">${status}</strong></p>
         <p>You can track your order anytime on our dashboard.</p>
         <p>Thank you for choosing Unique3DPrinters!</p>

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Search, Filter, UserPlus, Check, X } from "lucide-react";
+import { Search, Filter, UserPlus, Check, X, Mail } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useWorkers } from "@/hooks/useWorkers";
-import { assignWorkerToOrder, unassignWorker, updateOrderStatus } from "@/services/orders.service";
+import { assignWorkerToOrder, unassignWorker, updateOrderStatus, triggerOrderEmail } from "@/services/orders.service";
 import type { OrderDoc, OrderStatus, UserDoc } from "@/types/firebase.types";
 
 function formatDate(ts: any): string {
@@ -21,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled: "#EF4444",
 };
 
-export default function AdminOrdersPage() {
+export default function AdminOrdersPage({ customOnly = false }: { customOnly?: boolean }) {
   const { orders, loading } = useOrders();
   const { workers } = useWorkers();
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,7 +31,8 @@ export default function AdminOrdersPage() {
   const filteredOrders = orders.filter((o) => {
     const matchesSearch = o.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) || o.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "All" || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesType = !customOnly || o.items?.some(i => !i.designId);
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   const handleAssignWorker = async (orderId: string, worker: UserDoc) => {
@@ -59,11 +60,28 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleResendEmail = async (order: OrderDoc) => {
+    if (!order.customerEmail) {
+      alert("Customer email not available for this order.");
+      return;
+    }
+    const confirm = window.confirm(`Resend email for status "${order.status}" to ${order.customerEmail}?`);
+    if (confirm) {
+      try {
+        await triggerOrderEmail(order.orderNumber || order.id, order.status, order.customerEmail, order.customerName || "Customer");
+        alert("Email resent successfully.");
+      } catch (err) {
+        console.error("Failed to resend email:", err);
+        alert("Failed to resend email.");
+      }
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
-        <h2>Orders Management</h2>
-        <p>Manage all orders and assign workers to fulfill them.</p>
+        <h2>{customOnly ? "Quotes & Custom Requests" : "Orders Management"}</h2>
+        <p>{customOnly ? "Manage and price custom designs requested by customers." : "Manage all orders and assign workers to fulfill them."}</p>
       </div>
 
       {/* Filters Row */}
@@ -162,7 +180,7 @@ export default function AdminOrdersPage() {
                       <span style={{ color: "#444", fontStyle: "italic", fontSize: "0.65rem" }}>Unassigned</span>
                     )}
                   </td>
-                  <td style={{ padding: "12px 16px" }}>
+                  <td style={{ padding: "12px 16px", display: "flex", gap: 8, alignItems: "center" }}>
                     <button
                       onClick={() => setAssignModal(o.id)}
                       style={{
@@ -172,8 +190,22 @@ export default function AdminOrdersPage() {
                         color: "var(--accent)", fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
                         cursor: "pointer", transition: "all 0.2s", textTransform: "uppercase", letterSpacing: "0.05em",
                       }}
+                      title={o.assignedWorkerName ? "Reassign Worker" : "Assign Worker"}
                     >
-                      <UserPlus size={11} /> {o.assignedWorkerName ? "Reassign" : "Assign"}
+                      <UserPlus size={11} />
+                    </button>
+                    <button
+                      onClick={() => handleResendEmail(o)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 4,
+                        padding: "5px 12px", background: "rgba(16, 185, 129, 0.08)",
+                        border: "1px solid rgba(16, 185, 129, 0.2)", borderRadius: 6,
+                        color: "#10B981", fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
+                        cursor: "pointer", transition: "all 0.2s", textTransform: "uppercase", letterSpacing: "0.05em",
+                      }}
+                      title="Resend Email"
+                    >
+                      <Mail size={11} />
                     </button>
                   </td>
                 </tr>

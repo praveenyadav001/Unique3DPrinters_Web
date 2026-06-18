@@ -14,62 +14,30 @@ import type { DashboardPage } from "../Sidebar";
 import { useCart } from "@/hooks/useCart";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
+import { useDesigns } from "@/hooks/useDesigns";
 
 interface HomePageProps {
   onNavigate: (page: DashboardPage) => void;
 }
 
-const FEATURED_DESIGNS = [
-  {
-    id: 1,
-    name: "Rocket Model",
-    material: "PLA",
-    image: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&q=80",
-    price: "₹299",
-  },
-  {
-    id: 2,
-    name: "Gear Assembly",
-    material: "ABS",
-    image: "https://images.unsplash.com/photo-1615840287214-7fe58a8b668f?auto=format&fit=crop&w=400&q=80",
-    price: "₹499",
-  },
-  {
-    id: 3,
-    name: "Organic Sculpture",
-    material: "Resin",
-    image: "https://images.unsplash.com/photo-1535813547-99c456a41d4a?auto=format&fit=crop&w=400&q=80",
-    price: "₹349",
-  },
-  {
-    id: 4,
-    name: "Custom Keychain",
-    material: "PETG",
-    image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
-    price: "₹149",
-  },
-  {
-    id: 5,
-    name: "Drone Arm",
-    material: "Carbon PLA",
-    image: "https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=400&q=80",
-    price: "₹399",
-  },
-  {
-    id: 6,
-    name: "Jewelry Mold",
-    material: "Castable Resin",
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-    price: "₹249",
-  },
-];
+// (Removed hardcoded FEATURED_DESIGNS)
 
 export default function HomePage({ onNavigate }: HomePageProps) {
   const { cartCount } = useCart();
   const { orders } = useOrders();
   const { userProfile } = useAuth();
+  const { designs } = useDesigns();
   
   const ordersCount = orders.length;
+  
+  // Get top 6 designs dynamically
+  const featuredDesigns = [...designs].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 6).map(d => ({
+    id: d.id,
+    name: d.name,
+    material: d.supportedMaterials?.[0] || "PLA",
+    image: d.images?.[0] || "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&q=80",
+    price: `₹${d.price}`
+  }));
   
   return (
     <div className="dashboard-page">
@@ -349,19 +317,23 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             gap: 14,
           }}
         >
-          {FEATURED_DESIGNS.map((d) => (
+          {featuredDesigns.length > 0 ? featuredDesigns.map((d) => (
             <div
               key={d.id}
               className="dash-featured-card dash-glass-card"
               onClick={() => onNavigate("our-designs")}
             >
-              <div style={{ overflow: "hidden", height: 140 }}>
-                <img
-                  src={d.image}
-                  alt={d.name}
-                  className="card-image"
-                  style={{ height: 140, width: "100%" }}
-                />
+              <div style={{ overflow: "hidden", height: 140, display: "flex", alignItems: "center", justifyContent: "center", background: "#111" }}>
+                {d.image.startsWith("http") ? (
+                  <img
+                    src={d.image}
+                    alt={d.name}
+                    className="card-image"
+                    style={{ height: 140, width: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <span style={{ fontSize: "3rem" }}>{d.image}</span> // Fallback for emoji
+                )}
               </div>
               <div className="card-body">
                 <div className="card-title">{d.name}</div>
@@ -378,7 +350,11 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               </div>
             </div>
-          ))}
+          )) : (
+            <div style={{ padding: 20, color: "#666", fontFamily: "'DM Mono', monospace", gridColumn: "1 / -1" }}>
+              No designs available yet.
+            </div>
+          )}
         </div>
       </div>
     </div>

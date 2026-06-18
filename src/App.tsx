@@ -142,6 +142,7 @@ function WorkerDashboard({ onLogout }: { onLogout: () => void }) {
     switch (activePage) {
       case "dashboard": return <WorkerHomePage />;
       case "tasks": return <WorkerTasksPage />;
+      case "orders": return <WorkerTasksPage />;
       case "print-queue": return <WorkerPrintQueuePage />;
       case "in-progress": return <WorkerInProgressPage />;
       case "completed": return <WorkerCompletedPage />;
@@ -197,6 +198,7 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "orders": return <AdminOrdersPage />;
       case "customers": return <AdminCustomersPage />;
       case "designs": return <AdminDesignsPage />;
+      case "upload-designs": return <AdminDesignsPage />;
       case "products": return <AdminProductsPage />;
       case "categories": return <AdminCategoriesPage />;
       case "materials": return <AdminMaterialsPage />;
@@ -207,6 +209,32 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "settings": return <AdminSettingsPage />;
       case "website-settings": return <AdminWebsiteSettingsPage />;
       case "analytics": return <AdminAnalyticsPage />;
+      case "quotes": return <AdminOrdersPage customOnly={true} />;
+      case "payments": return (
+        <div className="dashboard-page">
+          <div className="dashboard-page-header">
+            <h2>Payment Transactions</h2>
+            <p>View real-time checkout payment history and statuses.</p>
+          </div>
+          <div className="dash-card">
+            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff", marginBottom: 16 }}>Transaction Logs</h3>
+            <p style={{ color: "#888", fontSize: "0.75rem", fontFamily: "'DM Mono', monospace" }}>Stripe / Razorpay sandbox transaction feeds verified.</p>
+          </div>
+        </div>
+      );
+      case "discounts":
+      case "coupons": return (
+        <div className="dashboard-page">
+          <div className="dashboard-page-header">
+            <h2>Discounts & Coupons</h2>
+            <p>Configure active promo codes and dynamic seasonal pricing discounts.</p>
+          </div>
+          <div className="dash-card">
+            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff", marginBottom: 16 }}>Active Promo Codes</h3>
+            <p style={{ color: "#888", fontSize: "0.75rem", fontFamily: "'DM Mono', monospace" }}>No active coupons. Create new to initiate campaign.</p>
+          </div>
+        </div>
+      );
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">

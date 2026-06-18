@@ -3,7 +3,7 @@
 
 import {
   collection, doc, addDoc, updateDoc,
-  onSnapshot, query, where, orderBy, serverTimestamp,
+  onSnapshot, query, where, serverTimestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -21,8 +21,8 @@ export function subscribeToDesigns(
   return onSnapshot(q, (snap) => {
     const designs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as DesignDoc));
     designs.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt as any).getTime();
       return (dateB || 0) - (dateA || 0);
     });
     callback(designs);
@@ -44,8 +44,8 @@ export function subscribeToDesignsByCategory(
   return onSnapshot(q, (snap) => {
     const designs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as DesignDoc));
     designs.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt as any).getTime();
       return (dateB || 0) - (dateA || 0);
     });
     callback(designs);
