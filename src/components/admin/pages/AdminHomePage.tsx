@@ -12,23 +12,6 @@ interface AdminHomePageProps {
   onNavigate: (page: AdminPage) => void;
 }
 
-// Hardcoded fallbacks for display - will be overridden by real data in component
-
-const TOP_DESIGNS = [
-  { rank: 1, name: "Personalized Name Plate", sales: 428, price: "₹299", emoji: "💫" },
-  { rank: 2, name: "Keychain - Custom Name", sales: 356, price: "₹199", emoji: "🔑" },
-  { rank: 3, name: "3D Miniature House", sales: 289, price: "₹499", emoji: "🏠" },
-  { rank: 4, name: "Flower Vase", sales: 245, price: "₹349", emoji: "🌹" },
-  { rank: 5, name: "Bike Number Plate", sales: 198, price: "₹249", emoji: "🏍️" },
-];
-
-const LOW_STOCK = [
-  { name: "3D Elephant Figurine", stock: 5, emoji: "🐘" },
-  { name: "Pen Holder", stock: 4, emoji: "🖊️" },
-  { name: "Miniature Car", stock: 3, emoji: "🚗" },
-  { name: "Desk Organizer", stock: 2, emoji: "📦" },
-];
-
 const ORDER_STATUS_FALLBACK = [
   { label: "Processing", count: 0, pct: 0, color: "#EAB308" },
   { label: "Confirmed", count: 0, pct: 0, color: "#10B981" },

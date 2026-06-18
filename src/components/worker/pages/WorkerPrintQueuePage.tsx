@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ListOrdered, Clock, Package, ArrowRight, Loader, Printer, X } from "lucide-react";
+import { ListOrdered, Clock, ArrowRight, Loader, Printer, X } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { updateOrderStatus, assignPrinterToOrder } from "@/services/orders.service";
 import { usePrinters } from "@/hooks/usePrinters";

@@ -3,13 +3,20 @@
 
 import {
   collection, doc, updateDoc, onSnapshot,
-  query, where, orderBy, serverTimestamp,
+  query, where, serverTimestamp,
+  type Timestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { UserDoc } from "@/types/firebase.types";
 
 const usersRef = collection(db, "users");
+
+function toMillis(value: Timestamp | Date | string | number | undefined): number {
+  if (!value) return 0;
+  const date = value instanceof Date ? value : typeof value === "object" && "toDate" in value ? value.toDate() : new Date(value);
+  return date.getTime();
+}
 
 // ─── Subscribe to All Workers (Admin) ───────────────────────
 export function subscribeToWorkers(
@@ -34,9 +41,7 @@ export function subscribeToCustomers(
   return onSnapshot(q, (snap) => {
     const customers = snap.docs.map((d) => ({ ...d.data(), uid: d.id } as UserDoc));
     customers.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
-      return (dateB || 0) - (dateA || 0);
+      return toMillis(b.createdAt) - toMillis(a.createdAt);
     });
     callback(customers);
   }, (error) => {

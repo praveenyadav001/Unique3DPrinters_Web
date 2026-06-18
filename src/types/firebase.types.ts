@@ -193,6 +193,13 @@ export interface SystemSettingsDoc {
   supportEmail: string;
   defaultCurrency: string;
   orderPrefix: string;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
+  notifyOnNewOrder?: boolean;
+  notifyOnLowStock?: boolean;
+  notifyOnPrinterError?: boolean;
   updatedAt: Timestamp;
 }
 

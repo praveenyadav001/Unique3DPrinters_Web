@@ -131,3 +131,33 @@ export async function deleteFile(filePath: string): Promise<void> {
   const storageRef = ref(storage, filePath);
   await deleteObject(storageRef);
 }
+
+// ─── Upload Banner Image (Admin) ─────────────────────────────
+export function uploadBannerImage(
+  file: File,
+  onProgress?: (p: UploadProgress) => void
+): Promise<string> {
+  const fileName = `banner_${Date.now()}_${file.name}`;
+  const storageRef = ref(storage, `website/${fileName}`);
+
+  return new Promise((resolve, reject) => {
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        onProgress?.({
+          progress,
+          state: snapshot.state as UploadProgress["state"],
+        });
+      },
+      (error) => reject(error),
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(url);
+      }
+    );
+  });
+}
+

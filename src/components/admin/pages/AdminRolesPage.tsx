@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Shield, Plus, Edit2, Trash2, Loader } from "lucide-react";
 import { useAllUsers } from "@/hooks/useWorkers";
 

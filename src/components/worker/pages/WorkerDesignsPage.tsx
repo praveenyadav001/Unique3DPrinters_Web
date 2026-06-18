@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Loader, Filter, Package } from "lucide-react";
+import { Search, Loader, Package } from "lucide-react";
 import { useDesigns } from "@/hooks/useDesigns";
 
 export default function WorkerDesignsPage() {

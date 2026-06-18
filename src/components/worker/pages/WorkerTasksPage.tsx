@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   ClipboardList, Loader, CheckCircle2, AlertCircle,
-  Search, Filter, ArrowUpDown, ChevronDown,
+  Search, ArrowUpDown,
 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { updateOrderStatus } from "@/services/orders.service";

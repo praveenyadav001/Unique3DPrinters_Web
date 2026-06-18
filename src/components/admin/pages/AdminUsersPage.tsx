@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Loader, Mail, UserPlus, Users, X, Save } from "lucide-react";
+import { Search, Loader, Mail, UserPlus, Users, X } from "lucide-react";
 import { useWorkers, useCustomers } from "@/hooks/useWorkers";
 import type { UserDoc } from "@/types/firebase.types";
 import { createWorkerAccount } from "@/services/auth.service";

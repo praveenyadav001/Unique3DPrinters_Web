@@ -1,7 +1,7 @@
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomers } from "@/hooks/useWorkers";
 import { useDesigns } from "@/hooks/useDesigns";
-import { Activity, Users, MousePointerClick, TrendingUp, DownloadCloud, DollarSign } from "lucide-react";
+import { Activity, Users, MousePointerClick, DownloadCloud, DollarSign } from "lucide-react";
 
 // SVG Traffic Chart based on daily revenue
 function TrafficChart({ orders }: { orders: any[] }) {
@@ -115,7 +115,7 @@ export default function AdminAnalyticsPage() {
           { label: "Active Designs", value: activeDesigns.toLocaleString(), diff: "Catalog", icon: <MousePointerClick />, color: "#A855F7" },
         ].map((stat, i) => (
           <div key={i} className="dash-card" style={{ borderColor: `${stat.color}15` }}>
-            <div style={{ display: "flex", justifycontent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: 8, background: `${stat.color}12`, display: "flex", alignItems: "center", justifyContent: "center", color: stat.color }}>
                 {stat.icon}
               </div>

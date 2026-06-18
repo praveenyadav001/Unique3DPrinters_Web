@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { SystemSettingsDoc, WebsiteSettingsDoc } from "@/types/firebase.types";
 

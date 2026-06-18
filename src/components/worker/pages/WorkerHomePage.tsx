@@ -1,48 +1,14 @@
 import { useState } from "react";
 import {
   ClipboardList, Loader, CheckCircle2, AlertCircle, TrendingUp,
-  ArrowRight, Clock, Thermometer, Info, Package, ChevronRight,
+  ArrowRight, Thermometer, Package, ChevronRight,
 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { updateOrderStatus } from "@/services/orders.service";
 
-// Stats and Tasks are computed dynamically inside the component from real order data
-
-const IN_PROGRESS = [
-  { id: "ORD12345", name: "Personalized Name Plate", printer: "P-01", material: "PLA - Black", layer: "125 / 240", progress: 52, timeLeft: "1h 25m" },
-  { id: "ORD12344", name: "Keychain - ROHIT", printer: "P-02", progress: 68 },
-  { id: "ORD12343", name: "3D Miniature House", printer: "P-03", progress: 35 },
-  { id: "ORD12342", name: "Flower Vase", printer: "P-01", progress: 72 },
-];
-
-const NOTIFICATIONS = [
-  { icon: <AlertCircle size={14} />, text: "Order #ORD12340 requires quality check.", time: "10 mins ago", color: "#EAB308" },
-  { icon: <Info size={14} />, text: "Printer P-02 filament is low. Please check.", time: "25 mins ago", color: "#EF4444" },
-  { icon: <CheckCircle2 size={14} />, text: "Order #ORD12339 completed and ready for packaging.", time: "45 mins ago", color: "#10B981" },
-  { icon: <Clock size={14} />, text: "Scheduled maintenance for Printer P-03 at 2:00 PM.", time: "1 hour ago", color: "var(--accent)" },
-  { icon: <Package size={14} />, text: "New order #ORD12350 has been assigned to you.", time: "2 hours ago", color: "#00E5FF" },
-];
-
 import { usePrinters } from "@/hooks/usePrinters";
 import { useMaterials } from "@/hooks/useMaterials";
-
-const SCHEDULE = [
-  { time: "09:00 AM", label: "Shift Start" },
-  { time: "09:15 - 11:00 AM", label: "Printing Tasks" },
-  { time: "11:00 - 11:15 AM", label: "Break" },
-  { time: "11:15 AM - 01:00 PM", label: "Post Processing" },
-  { time: "01:00 PM - 01:30 PM", label: "Lunch Break" },
-  { time: "01:30 PM - 06:00 PM", label: "Quality Check & Packaging" },
-  { time: "06:00 PM", label: "Shift End" },
-];
-
-const COMPLETED = [
-  { id: "ORD12341", name: "Personalized Name Plate", emoji: "💫", time: "09:45 AM" },
-  { id: "ORD12339", name: "Keychain - ROHIT", emoji: "🔑", time: "09:10 AM" },
-  { id: "ORD12338", name: "Flower Vase", emoji: "🌹", time: "08:30 AM" },
-  { id: "ORD12337", name: "Bike Number Plate", emoji: "🏍️", time: "08:05 AM" },
-];
 
 export default function WorkerHomePage() {
   const { userProfile } = useAuth();

@@ -5,9 +5,11 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const root = __dirname.replace(/\\/g, '/')
 
 // https://vite.dev/config/
 export default defineConfig({
+  root,
   plugins: [tailwindcss(), react()],
   resolve: {
     alias: {

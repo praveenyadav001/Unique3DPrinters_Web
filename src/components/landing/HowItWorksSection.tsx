@@ -1,8 +1,6 @@
-import React from "react";
 import {
-  UploadCloud, Settings2, Box, Layers, Maximize,
-  CheckCircle2, Info, ChevronDown, Lock, CreditCard,
-  Rocket, Award, Headphones, Shield, Cpu, MapPin, Truck
+  UploadCloud, Settings2, CreditCard,
+  Rocket, Award, Headphones, Shield, Cpu
 } from "lucide-react";
 
 export function HowItWorksSection() {

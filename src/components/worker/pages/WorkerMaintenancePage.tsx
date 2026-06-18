@@ -1,4 +1,4 @@
-import { Wrench, Plus, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { Wrench, Plus, CheckCircle2, Clock } from "lucide-react";
 import { useMaintenance } from "@/hooks/useMaintenance";
 
 export default function WorkerMaintenancePage() {

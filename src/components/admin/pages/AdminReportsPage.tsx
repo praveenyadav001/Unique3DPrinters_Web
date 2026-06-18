@@ -1,6 +1,11 @@
 import { BarChart3, TrendingUp, Users, Package, IndianRupee } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomers } from "@/hooks/useWorkers";
+import type { Timestamp } from "firebase/firestore";
+
+function toDate(value: Timestamp | Date | string | number): Date {
+  return value instanceof Date ? value : typeof value === "object" && "toDate" in value ? value.toDate() : new Date(value);
+}
 
 export default function AdminReportsPage() {
   const { orders } = useOrders();
@@ -17,7 +22,7 @@ export default function AdminReportsPage() {
   const newCustomers = customers.filter(c => {
     // customers created in last 30 days
     if (!c.createdAt) return false;
-    const date = c.createdAt.toDate ? c.createdAt.toDate() : new Date(c.createdAt);
+    const date = toDate(c.createdAt);
     return (new Date().getTime() - date.getTime()) / (1000 * 3600 * 24) < 30;
   }).length;
 

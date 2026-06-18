@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   Search, ShoppingCart, User, ArrowRight,
-  CheckCircle2, Shield, Truck, Headphones, Award,
-  PenTool, UploadCloud, Settings2, Package,
+  PenTool, UploadCloud,
   MapPin, Phone, Mail, Send, ChevronRight, Star,
 } from "lucide-react";
 import { CardStack, CardStackItem } from "../ui/card-stack";

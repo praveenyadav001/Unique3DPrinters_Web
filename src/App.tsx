@@ -63,6 +63,10 @@ import AdminWebsiteSettingsPage from "@/components/admin/pages/AdminWebsiteSetti
 import AdminAnalyticsPage from "@/components/admin/pages/AdminAnalyticsPage";
 import AdminUploadDesignPage from "@/components/admin/pages/AdminUploadDesignPage";
 
+function formatPageTitle(page: string) {
+  return page.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+}
+
 // ─── Splash Screen ──────────────────────────────────────────
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [fadeOut, setFadeOut] = useState(false);
@@ -157,7 +161,7 @@ function WorkerDashboard({ onLogout }: { onLogout: () => void }) {
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">
-            <h2>{activePage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</h2>
+            <h2>{formatPageTitle(activePage)}</h2>
             <p>This section is under development.</p>
           </div>
           <div className="dash-card" style={{ padding: "60px 40px", textAlign: "center" }}>
@@ -239,7 +243,7 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">
-            <h2>{activePage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</h2>
+            <h2>{formatPageTitle(activePage)}</h2>
             <p>This section is under development.</p>
           </div>
           <div className="dash-card" style={{ padding: "60px 40px", textAlign: "center" }}>

@@ -34,8 +34,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
   const featuredDesigns = [...designs].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 6).map(d => ({
     id: d.id,
     name: d.name,
-    material: d.supportedMaterials?.[0] || "PLA",
-    image: d.images?.[0] || "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&q=80",
+    material: d.materials?.[0] || "PLA",
+    image: d.imageURL || d.emoji || "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&q=80",
     price: `₹${d.price}`
   }));
   

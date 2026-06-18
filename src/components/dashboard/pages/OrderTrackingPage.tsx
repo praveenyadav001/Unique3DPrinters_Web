@@ -1,6 +1,7 @@
 import {
   Package, CheckCircle2, Printer, Truck, MapPin, Clock, HelpCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useOrders } from "@/hooks/useOrders";
 import type { OrderDoc } from "@/types/firebase.types";
 
@@ -12,12 +13,27 @@ const STATUS_STEPS = [
   { key: "Delivered", label: "Delivered", icon: <MapPin size={16} /> },
 ];
 
+function normalizeTimelineStatus(orderStatus: string) {
+  if (orderStatus === "Processing" || orderStatus === "Post Processing") return "Printing";
+  if (orderStatus === "Cancelled") return "Pending";
+  return orderStatus;
+}
+
 function getStepState(orderStatus: string, stepKey: string) {
-  const order = STATUS_STEPS.findIndex((s) => s.key === orderStatus);
+  const order = STATUS_STEPS.findIndex((s) => s.key === normalizeTimelineStatus(orderStatus));
   const current = STATUS_STEPS.findIndex((s) => s.key === stepKey);
+  if (order < 0) return "pending";
   if (current < order) return "completed";
   if (current === order) return "active";
   return "pending";
+}
+
+function getStatusColor(status: string) {
+  if (status === "Delivered") return "#10B981";
+  if (status === "Shipped") return "#00E5FF";
+  if (status === "Cancelled") return "#EF4444";
+  if (status === "Printing" || status === "Processing" || status === "Post Processing") return "#EAB308";
+  return "var(--accent)";
 }
 
 function formatDate(ts: any): string {
@@ -28,7 +44,14 @@ function formatDate(ts: any): string {
 
 export default function OrderTrackingPage() {
   const { orders, loading } = useOrders();
-  const selectedOrder: OrderDoc | null = orders.length > 0 ? orders[0] : null;
+  const [selectedOrderId, setSelectedOrderId] = useState("");
+  const selectedOrder: OrderDoc | null = orders.find((order) => order.id === selectedOrderId) || orders[0] || null;
+
+  useEffect(() => {
+    if (!selectedOrderId && orders[0]) {
+      setSelectedOrderId(orders[0].id);
+    }
+  }, [orders, selectedOrderId]);
 
   if (loading) {
     return (
@@ -58,9 +81,7 @@ export default function OrderTrackingPage() {
     );
   }
 
-  const statusColor = selectedOrder.status === "Delivered" ? "#10B981"
-    : selectedOrder.status === "Printing" || selectedOrder.status === "Processing" ? "#EAB308"
-    : selectedOrder.status === "Shipped" ? "#00E5FF" : "#EAB308";
+  const statusColor = getStatusColor(selectedOrder.status);
 
   return (
     <div className="dashboard-page">
@@ -167,20 +188,32 @@ export default function OrderTrackingPage() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} style={{ borderBottom: "1px solid #111" }}>
+              {orders.map((order) => {
+                const rowColor = getStatusColor(order.status);
+                const isSelected = selectedOrder.id === order.id;
+                return (
+                <tr
+                  key={order.id}
+                  onClick={() => setSelectedOrderId(order.id)}
+                  style={{
+                    borderBottom: "1px solid #111",
+                    cursor: "pointer",
+                    background: isSelected ? "rgba(var(--accent-rgb), 0.06)" : "transparent",
+                  }}
+                >
                   <td style={{ padding: "12px 14px", color: "var(--accent)", fontWeight: 600 }}>#{order.orderNumber}</td>
                   <td style={{ padding: "12px 14px", color: "#ccc" }}>{order.items?.map((i) => i.designName).join(", ")}</td>
                   <td style={{ padding: "12px 14px", color: "#666" }}>{formatDate(order.createdAt)}</td>
                   <td style={{ padding: "12px 14px", color: "#ccc" }}>₹{order.total?.toLocaleString()}</td>
                   <td style={{ padding: "12px 14px" }}>
-                    <span style={{ color: statusColor, fontWeight: 600 }}>
+                    <span style={{ color: rowColor, fontWeight: 600 }}>
                       {order.status === "Delivered" && <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />}
                       {order.status}
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

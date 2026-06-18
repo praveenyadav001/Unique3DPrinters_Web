@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -30,6 +30,12 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
   const infillGroupRef = useRef<THREE.Group | null>(null);
   const mainGroupRef = useRef<THREE.Group | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+
+  const resolveColor = useCallback((value: string) => {
+    if (!value.startsWith("var(")) return value;
+    const variableName = value.slice(4, -1).trim();
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim() || "#ff5c00";
+  }, []);
 
   // Helper to rebuild infill wireframes dynamically
   const rebuildInfill = () => {
@@ -125,13 +131,13 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
     clippingPlaneRef.current.constant = -threshold;
 
     if (printMaterialRef.current) {
-      printMaterialRef.current.color.set(accentColor);
+      printMaterialRef.current.color.set(resolveColor(accentColor));
       printMaterialRef.current.clippingPlanes = [clippingPlaneRef.current];
       printMaterialRef.current.needsUpdate = true;
     }
 
     rebuildInfill();
-  }, [sliceHeight, infillDensity, infillPattern, accentColor]);
+  }, [sliceHeight, infillDensity, infillPattern, accentColor, resolveColor]);
 
   // 2. Toggle Hologram Skeleton Visibility
   useEffect(() => {
@@ -209,7 +215,7 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
 
     // Materials (utilizing clipping plane ref)
     const printMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(accentColor),
+      color: new THREE.Color(resolveColor(accentColor)),
       roughness: 0.25,
       metalness: 0.8,
       flatShading: true,
@@ -219,7 +225,7 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
     printMaterialRef.current = printMaterial;
 
     const wireframeMaterial = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(accentColor),
+      color: new THREE.Color(resolveColor(accentColor)),
       wireframe: true,
       transparent: true,
       opacity: 0.08,
@@ -287,7 +293,7 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
             const size = new THREE.Vector3();
             boundingBox.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 110 / maxDim;
+            const scale = maxDim > 0 ? 110 / maxDim : 1;
             group.scale.set(scale, scale, scale);
             group.position.y = -60 + (size.y * scale) / 2;
 
@@ -323,7 +329,7 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
             const size = new THREE.Vector3();
             box.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 110 / maxDim;
+            const scale = maxDim > 0 ? 110 / maxDim : 1;
             group.scale.set(scale, scale, scale);
             group.position.y = -60 + (size.y * scale) / 2;
 
@@ -387,12 +393,12 @@ export default function ModelViewer({ file, accentColor = "#ff5c00" }: ModelView
         }
       });
 
-      if (mountRef.current && renderer.domElement) {
+      if (mountRef.current?.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
-  }, [file]);
+  }, [file, accentColor, resolveColor, showHologram]);
 
   return (
     <div className="relative w-full h-full min-h-[380px] bg-[#050505] border border-neutral-800 rounded-lg overflow-hidden flex flex-col md:flex-row items-stretch">
