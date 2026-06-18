@@ -1,6 +1,8 @@
-import { ListOrdered, Clock, Package, ArrowRight, Loader } from "lucide-react";
+import { useState } from "react";
+import { ListOrdered, Clock, Package, ArrowRight, Loader, Printer, X } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
-import { updateOrderStatus } from "@/services/orders.service";
+import { updateOrderStatus, assignPrinterToOrder } from "@/services/orders.service";
+import { usePrinters } from "@/hooks/usePrinters";
 
 function formatDate(ts: any): string {
   if (!ts) return "—";
@@ -10,11 +12,24 @@ function formatDate(ts: any): string {
 
 export default function WorkerPrintQueuePage() {
   const { orders, loading } = useOrders();
-  const queue = orders.filter((o) => o.status === "Pending" || o.status === "Confirmed");
+  const { printers } = usePrinters();
+  const queue = orders.filter((o) => o.status === "Pending" || o.status === "Confirmed" || o.status === "Processing");
 
-  const handleStart = async (docId: string) => {
+  const [selectingPrinterForOrder, setSelectingPrinterForOrder] = useState<string | null>(null);
+
+  const handleStartProcessing = async (docId: string) => {
     try { await updateOrderStatus(docId, "Processing"); }
     catch { alert("Failed to update status."); }
+  };
+
+  const handleAssignPrinter = async (printerId: string, printerName: string) => {
+    if (!selectingPrinterForOrder) return;
+    try {
+      await assignPrinterToOrder(selectingPrinterForOrder, printerId, printerName);
+      setSelectingPrinterForOrder(null);
+    } catch {
+      alert("Failed to assign printer.");
+    }
   };
 
   return (
@@ -60,7 +75,7 @@ export default function WorkerPrintQueuePage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
                       <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "var(--accent)", fontWeight: 600 }}>#{o.orderNumber}</span>
-                      <span className={`dash-badge ${o.status === "Confirmed" ? "dash-badge-blue" : "dash-badge-yellow"}`} style={{ marginLeft: 8, fontSize: "0.5rem" }}>
+                      <span className={`dash-badge ${o.status === "Confirmed" ? "dash-badge-blue" : o.status === "Processing" ? "dash-badge-accent" : "dash-badge-yellow"}`} style={{ marginLeft: 8, fontSize: "0.5rem" }}>
                         {o.status}
                       </span>
                     </div>
@@ -99,18 +114,71 @@ export default function WorkerPrintQueuePage() {
 
                 {/* Action */}
                 <div style={{
-                  display: "flex", alignItems: "center", padding: "0 20px",
+                  display: "flex", flexDirection: "column", justifyContent: "center", gap: 8, padding: "0 20px",
                   borderLeft: "1px solid #1a1a1a",
                 }}>
-                  <button onClick={() => handleStart(o.id)} className="dash-btn-primary" style={{ whiteSpace: "nowrap" }}>
-                    Start Processing <ArrowRight size={14} />
-                  </button>
+                  {o.status === "Pending" || o.status === "Confirmed" ? (
+                    <button onClick={() => handleStartProcessing(o.id)} className="dash-btn-primary" style={{ whiteSpace: "nowrap" }}>
+                      Start Processing <ArrowRight size={14} />
+                    </button>
+                  ) : (
+                    <button onClick={() => setSelectingPrinterForOrder(o.id)} className="dash-btn-secondary" style={{ whiteSpace: "nowrap", borderColor: "var(--accent)", color: "var(--accent)" }}>
+                      <Printer size={14} style={{ marginRight: 6 }} /> Assign Printer
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Select Printer Modal */}
+      {selectingPrinterForOrder && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="dash-card" style={{ width: 500, maxWidth: "90vw", padding: 24, maxHeight: "80vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.2rem", margin: 0 }}>Select Printer</h3>
+              <button onClick={() => setSelectingPrinterForOrder(null)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }}><X size={18} /></button>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {printers.length === 0 ? (
+                <div style={{ color: "#888", textAlign: "center", padding: 20 }}>No printers found.</div>
+              ) : printers.map(p => {
+                const isIdle = p.status === "Idle";
+                return (
+                  <button 
+                    key={p.id}
+                    onClick={() => handleAssignPrinter(p.id, p.name)}
+                    disabled={!isIdle}
+                    className="dash-card"
+                    style={{ 
+                      padding: "16px", 
+                      textAlign: "left", 
+                      cursor: isIdle ? "pointer" : "not-allowed",
+                      borderColor: isIdle ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.02)",
+                      opacity: isIdle ? 1 : 0.5,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#fff" }}>{p.name}</div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888" }}>{p.type}</div>
+                    </div>
+                    <span className={`dash-badge ${isIdle ? "dash-badge-green" : "dash-badge-red"}`}>
+                      {p.status}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

@@ -59,7 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       doc(db, "users", user.uid),
       (snap) => {
         if (snap.exists()) {
-          setUserProfile(snap.data() as UserDoc);
+          const profile = snap.data() as UserDoc;
+          setUserProfile(profile);
+          
+          // Auto-set worker status to Online
+          if (profile.role === "worker" && profile.status !== "Online") {
+            import("@/services/workers.service").then(({ updateWorkerStatus }) => {
+              updateWorkerStatus(user.uid, "Online").catch(console.error);
+            });
+          }
         } else {
           setUserProfile(null);
         }
@@ -133,12 +141,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     setError(null);
     try {
+      if (userProfile?.role === "worker" && user) {
+        const { updateWorkerStatus } = await import("@/services/workers.service");
+        await updateWorkerStatus(user.uid, "Offline").catch(console.error);
+      }
       await doSignOut();
       setUserProfile(null);
     } catch (err: any) {
       setError(err?.message || "Logout failed");
     }
-  }, []);
+  }, [userProfile, user]);
 
   const resetPasswordFn = useCallback(async (email: string) => {
     setError(null);

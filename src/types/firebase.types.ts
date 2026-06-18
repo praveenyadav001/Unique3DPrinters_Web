@@ -108,6 +108,9 @@ export interface OrderDoc {
   // Worker assignment
   assignedWorkerId: string | null;
   assignedWorkerName: string | null;
+  assignedPrinterId?: string | null;
+  assignedPrinterName?: string | null;
+  printProgress?: number;
   // Financial
   subtotal: number;
   shippingCost: number;

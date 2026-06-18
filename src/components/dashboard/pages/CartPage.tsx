@@ -73,8 +73,8 @@ export default function CartPage({ onNavigate }: CartPageProps) {
     try {
       const newOrderId = await createOrder({
         customerId: user.uid,
-        customerName: userProfile.displayName,
-        customerEmail: userProfile.email,
+        customerName: deliveryForm.fullName || "Customer",
+        customerEmail: userProfile.email || "",
         items: cartItems.map((item) => ({
           designId: item.designId || "",
           designName: item.name,
@@ -84,7 +84,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
           quantity: item.quantity,
           price: item.price,
           imageURL: item.imageURL || "",
-          fileURL: item.fileURL,
+          fileURL: item.fileURL || "",
         })),
         shippingAddress: {
           street: deliveryForm.address,

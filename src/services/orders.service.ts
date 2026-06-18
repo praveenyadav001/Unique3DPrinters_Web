@@ -144,6 +144,34 @@ export async function unassignWorker(orderId: string): Promise<void> {
   });
 }
 
+// ─── Assign Printer to Order ────────────────────────────────
+export async function assignPrinterToOrder(
+  orderId: string,
+  printerId: string,
+  printerName: string
+): Promise<void> {
+  const ref = doc(db, "orders", orderId);
+  await updateDoc(ref, {
+    assignedPrinterId: printerId,
+    assignedPrinterName: printerName,
+    status: "Printing",
+    printProgress: 0,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ─── Update Print Progress ──────────────────────────────────
+export async function updateOrderProgress(
+  orderId: string,
+  progress: number
+): Promise<void> {
+  const ref = doc(db, "orders", orderId);
+  await updateDoc(ref, {
+    printProgress: progress,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 // ─── Get Order by Number ──────────────────────────────────────
 export async function getOrderByNumber(orderNumber: string): Promise<OrderDoc | null> {
   const cleanNumber = orderNumber.replace("-", "").toUpperCase();

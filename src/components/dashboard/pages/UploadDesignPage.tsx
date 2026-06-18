@@ -141,7 +141,7 @@ export default function UploadDesignPage() {
     setAddingToCart(true);
     try {
       await addItem({
-        designId: undefined,
+        designId: "",
         name: uploadedFile.name,
         material,
         color,
@@ -149,7 +149,7 @@ export default function UploadDesignPage() {
         quantity,
         price: basePrice,
         imageURL: "",
-        fileURL: fileURL || undefined,
+        fileURL: fileURL || "",
       });
       alert("Added to cart!");
     } catch (err) {

@@ -1,26 +1,52 @@
 import { Calendar, Clock, Coffee, CheckCircle2 } from "lucide-react";
-
-const WEEK_SCHEDULE = [
-  { day: "Monday", date: "20 May", status: "Present", shift: "09:00 AM - 06:00 PM" },
-  { day: "Tuesday", date: "21 May", status: "Today", shift: "09:00 AM - 06:00 PM", active: true },
-  { day: "Wednesday", date: "22 May", status: "Scheduled", shift: "09:00 AM - 06:00 PM" },
-  { day: "Thursday", date: "23 May", status: "Scheduled", shift: "09:00 AM - 06:00 PM" },
-  { day: "Friday", date: "24 May", status: "Scheduled", shift: "09:00 AM - 06:00 PM" },
-  { day: "Saturday", date: "25 May", status: "Off", shift: "—" },
-  { day: "Sunday", date: "26 May", status: "Off", shift: "—" },
-];
-
-const TODAY_TIMELINE = [
-  { time: "09:00 AM", label: "Shift Start", icon: <CheckCircle2 size={14} />, done: true },
-  { time: "09:15 AM", label: "Printing Tasks", icon: <CheckCircle2 size={14} />, done: true },
-  { time: "11:00 AM", label: "Tea Break", icon: <Coffee size={14} />, done: true },
-  { time: "11:15 AM", label: "Post Processing", icon: <Clock size={14} />, active: true },
-  { time: "01:00 PM", label: "Lunch Break", icon: <Clock size={14} /> },
-  { time: "01:30 PM", label: "Quality Check & Packaging", icon: <Clock size={14} /> },
-  { time: "06:00 PM", label: "Shift End", icon: <Clock size={14} /> },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 export default function WorkerSchedulePage() {
+  const { userProfile } = useAuth();
+  
+  const shiftStart = userProfile?.shift?.start || "09:00 AM";
+  const shiftEnd = userProfile?.shift?.end || "06:00 PM";
+  const shiftString = `${shiftStart} - ${shiftEnd}`;
+
+  // Generate dynamic week schedule
+  const today = new Date();
+  const currentDayIndex = today.getDay(); // 0 is Sunday
+  
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  
+  const WEEK_SCHEDULE = daysOfWeek.map((dayName, index) => {
+    // Generate dates for the current week (Sunday to Saturday)
+    const date = new Date(today);
+    date.setDate(today.getDate() - currentDayIndex + index);
+    const dateStr = date.toLocaleDateString("en-US", { day: "2-digit", month: "short" });
+    
+    // Weekend logic (assume Sat/Sun are off)
+    const isWeekend = index === 0 || index === 6;
+    const isToday = index === currentDayIndex;
+    const isPast = index < currentDayIndex;
+    
+    let status = "Scheduled";
+    if (isWeekend) status = "Off";
+    else if (isPast) status = "Present";
+    else if (isToday) status = "Today";
+
+    return {
+      day: dayName,
+      date: dateStr,
+      status,
+      shift: isWeekend ? "—" : shiftString,
+      active: isToday,
+    };
+  });
+
+  const TODAY_TIMELINE = [
+    { time: shiftStart, label: "Shift Start", icon: <CheckCircle2 size={14} />, done: true },
+    { time: "11:00 AM", label: "Morning Break", icon: <Coffee size={14} />, done: true },
+    { time: "01:00 PM", label: "Lunch Break", icon: <Clock size={14} />, active: true },
+    { time: "04:00 PM", label: "Afternoon Break", icon: <Coffee size={14} /> },
+    { time: shiftEnd, label: "Shift End", icon: <Clock size={14} /> },
+  ];
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
@@ -36,7 +62,7 @@ export default function WorkerSchedulePage() {
             <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
               <Calendar size={18} style={{ color: "var(--accent)" }} /> Weekly Roster
             </h3>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888" }}>May 20 - May 26, 2024</span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888" }}>This Week</span>
           </div>
           
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem" }}>

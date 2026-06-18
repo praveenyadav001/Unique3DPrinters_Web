@@ -31,7 +31,7 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
 
   const handleAddToCart = async () => {
     await addItem({
-      designId: undefined,
+      designId: "",
       name: `Flip Name: ${name1} ❤ ${name2}`,
       material,
       color,
@@ -133,6 +133,7 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
                   borderRadius: 12,
                   padding: 40,
                   textAlign: "center",
+                  perspective: "800px",
                 }}
               >
                 <div
@@ -142,11 +143,14 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
                     fontSize: "2rem",
                     color: "var(--accent)",
                     letterSpacing: "0.05em",
+                    display: "inline-block",
+                    transformStyle: "preserve-3d",
+                    animation: "flipAnimation 6s infinite ease-in-out",
                   }}
                 >
-                  {name1 || "Name1"}{" "}
-                  <span style={{ color: "#EF4444", fontSize: "1.6rem" }}>❤</span>{" "}
-                  {name2 || "Name2"}
+                  <span style={{ display: "inline-block", transform: "translateZ(10px)" }}>{name1 || "Name1"}</span>{" "}
+                  <span style={{ color: "#EF4444", fontSize: "1.6rem", display: "inline-block" }}>❤</span>{" "}
+                  <span style={{ display: "inline-block", transform: "translateZ(-10px) rotateX(90deg)" }}>{name2 || "Name2"}</span>
                 </div>
                 <div
                   style={{
@@ -156,8 +160,17 @@ export default function CustomizeDesignPage({ onNavigate }: CustomizeDesignPageP
                     marginTop: 12,
                   }}
                 >
-                  3D Flip Name Preview • Rotate with mouse
+                  3D Flip Name Preview
                 </div>
+                <style>{`
+                  @keyframes flipAnimation {
+                    0% { transform: rotateX(0deg); }
+                    40% { transform: rotateX(0deg); }
+                    50% { transform: rotateX(-90deg); }
+                    90% { transform: rotateX(-90deg); }
+                    100% { transform: rotateX(0deg); }
+                  }
+                `}</style>
               </div>
             </div>
           )}
