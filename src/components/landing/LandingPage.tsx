@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   Search, ShoppingCart, User, ArrowRight,
-  PenTool, UploadCloud,
+  PenTool, UploadCloud, Box, CreditCard, Home,
   MapPin, Phone, Mail, Send, ChevronRight, Star, Loader2, CheckCircle2
 } from "lucide-react";
+import { AnimeNavBar } from "../ui/anime-navbar";
 import { CardStack, CardStackItem } from "../ui/card-stack";
 import { ParticleTextEffect } from "../ui/particle-text-effect";
 import { HowItWorksSection } from "./HowItWorksSection";
@@ -33,10 +34,21 @@ const CARD_STACK_ITEMS: CardStackItem[] = CATEGORIES.map((cat, i) => ({
   tag: cat.emoji,
 }));
 
+const NAV_ITEMS = [
+  { name: "Home", url: "#", icon: Home },
+  { name: "Design", url: "#", icon: PenTool },
+  { name: "Upload Design", url: "#", icon: UploadCloud },
+  { name: "Our Designs", url: "#", icon: Box },
+  { name: "Orders", url: "#", icon: ShoppingCart },
+  { name: "Pricing", url: "#", icon: CreditCard },
+  { name: "Contact", url: "#", icon: Mail },
+];
+
 export default function LandingPage({ onLoginClick }: LandingPageProps) {
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [agreed, setAgreed] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
   const handleSubscribe = async () => {
     if (!email || !email.includes("@") || !agreed) return;
@@ -70,74 +82,92 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
   }, []);
 
   return (
-    <div style={{ background: "#0A0A0A", minHeight: "100vh", "--accent": "#00E5FF", "--accent-rgb": "0, 229, 255", "--accent-secondary": "#ffffff" } as any}>
+    <div style={{ background: "#0A0A0A", minHeight: "100vh", "--accent": "#00E5FF", "--accent-rgb": "0, 229, 255", "--accent-secondary": "#ffffff" } as any} className="flex w-full">
       {/* ═══ NAVBAR ═══════════════════════════════════════ */}
-      <nav className="landing-nav">
-        <div className="landing-nav-logo">
-          {/* SVG Logo icon */}
-          <svg viewBox="0 0 32 32" width="28" height="28">
-            <rect x="4" y="20" width="24" height="3" rx="1.5" fill="var(--accent)" opacity="0.4" />
-            <path d="M16 4 L26 16 L6 16 Z" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
-            <rect x="10" y="12" width="12" height="10" rx="1" fill="#111" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.6" />
-            <circle cx="16" cy="17" r="2" fill="var(--accent)" opacity="0.7" />
-          </svg>
-          <span className="trade-winds-regular" style={{ fontSize: "1.4rem", letterSpacing: "1px" }}>
-            <span style={{ color: "var(--accent)" }}>UNIQUE</span>
-            <span style={{ color: "#fff" }}>3D</span>
-            <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
-          </span>
-        </div>
+      <AnimeNavBar 
+        items={NAV_ITEMS}
+        defaultActive="Home"
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        logo={(isCollapsed) => (
+          <div className="landing-nav-logo" style={{ cursor: "pointer", gap: isCollapsed ? 0 : 8, justifyContent: "center" }}>
+            <svg viewBox="0 0 32 32" width="28" height="28" style={{ flexShrink: 0 }}>
+              <rect x="4" y="20" width="24" height="3" rx="1.5" fill="var(--accent)" opacity="0.4" />
+              <path d="M16 4 L26 16 L6 16 Z" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
+              <rect x="10" y="12" width="12" height="10" rx="1" fill="#111" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.6" />
+              <circle cx="16" cy="17" r="2" fill="var(--accent)" opacity="0.7" />
+            </svg>
+            {!isCollapsed && (
+              <span className="trade-winds-regular" style={{ fontSize: "1.4rem", letterSpacing: "1px", whiteSpace: "nowrap" }}>
+                <span style={{ color: "var(--accent)" }}>UNIQUE</span>
+                <span style={{ color: "#fff" }}>3D</span>
+                <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
+              </span>
+            )}
+          </div>
+        )}
+        rightContent={(isCollapsed) => (
+          <div className={`landing-nav-right ${isCollapsed ? 'flex-col gap-6' : 'flex-col gap-4'} w-full items-center`}>
+            {/* Search */}
+            <div className={`landing-nav-search ${isCollapsed ? 'w-10 h-10 p-0 justify-center rounded-full bg-white/5 border-white/10 mx-auto' : 'w-full'}`} style={isCollapsed ? { background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)" } : {}}>
+              <Search size={16} style={{ color: "#aaa", flexShrink: 0 }} />
+              {!isCollapsed && <input type="text" placeholder="Search..." style={{ width: "100%", background: "transparent", border: "none", color: "#fff", outline: "none", fontSize: "0.85rem" }} />}
+            </div>
 
-        <div className="landing-nav-links">
-          {["Home", "Design", "Upload Design", "Our Designs", "Orders", "Pricing", "Contact"].map((link, i) => (
-            <button key={link} className={`landing-nav-link ${i === 0 ? "active" : ""}`}>
-              {link}
-            </button>
-          ))}
-        </div>
+            {/* Cart & Login row */}
+            <div className={`flex ${isCollapsed ? 'flex-col gap-6' : 'flex-row gap-4 justify-between w-full'}`}>
+              <button className="dashboard-icon-btn" style={{ position: "relative", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", margin: isCollapsed ? "0 auto" : 0 }}>
+                <ShoppingCart size={18} color="#fff" />
+                <span style={{ position: "absolute", top: -4, right: -4, width: 18, height: 18, borderRadius: "50%", background: "var(--accent)", color: "#000", fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.6rem", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #0A0A0A" }}>3</span>
+              </button>
 
-        <div className="landing-nav-right">
-          <div className="landing-nav-search">
-            <Search size={14} style={{ color: "#555", flexShrink: 0 }} />
-            <input type="text" placeholder="Search designs, products..." />
+              <button onClick={onLoginClick} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", justifyContent: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(var(--accent-rgb), 0.1)", border: "1.5px solid #333", display: "flex", alignItems: "center", justifyContent: "center", color: "#888", margin: isCollapsed ? "0 auto" : 0 }}>
+                  <User size={16} />
+                </div>
+                {!isCollapsed && (
+                  <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.95rem", color: "#ccc" }}>Login</span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      />
+
+      <div className={`flex-1 transition-all duration-500 ease-in-out w-full overflow-x-hidden ${isSidebarCollapsed ? 'ml-0' : 'ml-0 md:ml-72'}`}>
+        {/* ═══ HERO ════════════════════════════════════════ */}
+        <section className="hero-centered relative">
+          
+          {/* Top Left Logo (Visible when sidebar is collapsed) */}
+          <div className={`absolute top-8 left-20 z-[99] transition-opacity duration-300 ${!isSidebarCollapsed ? 'md:opacity-0 pointer-events-none' : ''}`}>
+            <div className="landing-nav-logo" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              <svg viewBox="0 0 32 32" width="28" height="28" style={{ flexShrink: 0 }}>
+                <rect x="4" y="20" width="24" height="3" rx="1.5" fill="var(--accent)" opacity="0.4" />
+                <path d="M16 4 L26 16 L6 16 Z" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
+                <rect x="10" y="12" width="12" height="10" rx="1" fill="#111" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.6" />
+                <circle cx="16" cy="17" r="2" fill="var(--accent)" opacity="0.7" />
+              </svg>
+              <span className="trade-winds-regular" style={{ fontSize: "1.4rem", letterSpacing: "1px", whiteSpace: "nowrap" }}>
+                <span style={{ color: "var(--accent)" }}>UNIQUE</span>
+                <span style={{ color: "#fff" }}>3D</span>
+                <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
+              </span>
+            </div>
           </div>
 
-          <button className="dashboard-icon-btn" style={{ position: "relative" }}>
-            <ShoppingCart size={16} />
-            <span style={{
-              position: "absolute", top: -2, right: -2, width: 16, height: 16,
-              borderRadius: "50%", background: "var(--accent)", color: "#000",
-              fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.55rem",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              border: "1.5px solid #0A0A0A",
-            }}>3</span>
-          </button>
-
-          <button
-            onClick={onLoginClick}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: "none", border: "none", cursor: "pointer",
-            }}
-          >
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "rgba(var(--accent-rgb), 0.1)", border: "1.5px solid #333",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#888",
-            }}>
-              <User size={14} />
-            </div>
-            <span style={{
-              fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, fontSize: "0.85rem",
-              color: "#ccc",
-            }}>Login</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* ═══ HERO ════════════════════════════════════════ */}
-      <section className="hero-centered relative">
+          {/* Top Right Login Button */}
+          <div className="absolute top-6 right-8 z-[99]">
+            <button
+              onClick={onLoginClick}
+              className="flex items-center gap-2 hover:bg-white/10 transition-colors px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md cursor-pointer shadow-lg"
+            >
+              <div className="w-8 h-8 rounded-full bg-[rgba(var(--accent-rgb),0.2)] border border-[#333] flex items-center justify-center text-[var(--accent)]">
+                <User size={16} />
+              </div>
+              <span className="font-semibold text-sm text-[#ccc] hidden sm:block" style={{ fontFamily: "'Rajdhani', sans-serif" }}>Login</span>
+            </button>
+          </div>
+          
         <video
           autoPlay
           loop
@@ -399,8 +429,9 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <span key={p} className="landing-payment-badge">{p}</span>
             ))}
           </div>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
