@@ -4,8 +4,29 @@
 
 @theme {
   --font-sans: "Fugaz One", sans-serif;
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
 }
-/* Shadcn theme variables — renamed --accent to --ui-accent to avoid conflict with hex theme picker */
 :root {
   --accent: #FF5C00;
   --accent-rgb: 255, 92, 0;
@@ -76,6 +97,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+*:not(.trade-winds-regular):not(.trade-winds-regular *) {
+  font-family: "Fugaz One", sans-serif !important;
 }
 
 html, body {
