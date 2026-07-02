@@ -2,6 +2,9 @@
 
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Fugaz One", sans-serif;
+}
 /* Shadcn theme variables — renamed --accent to --ui-accent to avoid conflict with hex theme picker */
 :root {
   --accent: #FF5C00;
@@ -80,9 +83,21 @@ html, body {
   height: 100%;
   background-color: #000000;
   color: #ffffff;
-  font-family: 'DM Mono', monospace;
+  font-family: "Fugaz One", sans-serif;
   overflow-x: hidden;
   scroll-behavior: smooth;
+}
+
+.trade-winds-regular {
+  font-family: "Trade Winds", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.fugaz-one-regular {
+  font-family: "Fugaz One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 #root {

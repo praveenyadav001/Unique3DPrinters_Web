@@ -85,5 +85,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Subscribers collection
+    match /subscribers/{subscriberId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
   }
 }

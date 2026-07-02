@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Search, ShoppingCart, User, ArrowRight,
   PenTool, UploadCloud,
-  MapPin, Phone, Mail, Send, ChevronRight, Star,
+  MapPin, Phone, Mail, Send, ChevronRight, Star, Loader2, CheckCircle2
 } from "lucide-react";
 import { CardStack, CardStackItem } from "../ui/card-stack";
 import { ParticleTextEffect } from "../ui/particle-text-effect";
@@ -10,6 +10,8 @@ import { HowItWorksSection } from "./HowItWorksSection";
 import { motion } from "framer-motion";
 import { STLUploader } from "./STLUploader";
 import heroVideo from "@/assets/background video/slight_motion_effect_video_for.mp4";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface LandingPageProps {
   onLoginClick: () => void;
@@ -32,6 +34,28 @@ const CARD_STACK_ITEMS: CardStackItem[] = CATEGORIES.map((cat, i) => ({
 }));
 
 export default function LandingPage({ onLoginClick }: LandingPageProps) {
+  const [email, setEmail] = useState("");
+  const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [agreed, setAgreed] = useState(true);
+
+  const handleSubscribe = async () => {
+    if (!email || !email.includes("@") || !agreed) return;
+    setSubStatus("loading");
+    try {
+      await addDoc(collection(db, "subscribers"), {
+        email,
+        subscribedAt: new Date(),
+      });
+      setSubStatus("success");
+      setEmail("");
+      setTimeout(() => setSubStatus("idle"), 3000);
+    } catch (e) {
+      console.error("Subscription error:", e);
+      setSubStatus("error");
+      setTimeout(() => setSubStatus("idle"), 3000);
+    }
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -57,7 +81,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             <rect x="10" y="12" width="12" height="10" rx="1" fill="#111" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.6" />
             <circle cx="16" cy="17" r="2" fill="var(--accent)" opacity="0.7" />
           </svg>
-          <span>
+          <span className="trade-winds-regular" style={{ fontSize: "1.4rem", letterSpacing: "1px" }}>
             <span style={{ color: "var(--accent)" }}>UNIQUE</span>
             <span style={{ color: "#fff" }}>3D</span>
             <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
@@ -257,10 +281,10 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
 
       {/* ═══ FOOTER ══════════════════════════════════════ */}
       <footer className="landing-footer">
-        <div className="landing-footer-grid">
+        <div className="landing-footer-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
           {/* Brand */}
           <div className="landing-footer-brand">
-            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "1.3rem", letterSpacing: "0.05em" }}>
+            <div className="trade-winds-regular" style={{ fontSize: "1.4rem", letterSpacing: "1px" }}>
               <span style={{ color: "var(--accent)" }}>UNIQUE</span>
               <span style={{ color: "#fff" }}>3D</span>
               <span style={{ color: "var(--accent-secondary)" }}>PRINTERS</span>
@@ -284,11 +308,11 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             </div>
           </div>
 
-          {/* Explore */}
+          {/* Quick Links */}
           <div>
-            <div className="landing-footer-section-title">Explore</div>
+            <div className="landing-footer-section-title">Quick Links</div>
             <div className="landing-footer-links">
-              {["Home", "Design", "Upload Design", "Our Designs", "Categories", "Pricing", "Gallery"].map((l) => (
+              {["Home", "Our Designs", "Categories", "Pricing", "About Us", "Contact Us"].map((l) => (
                 <span key={l} className="landing-footer-link">
                   <ChevronRight size={10} /> {l}
                 </span>
@@ -300,19 +324,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
           <div>
             <div className="landing-footer-section-title">Orders & Support</div>
             <div className="landing-footer-links">
-              {["Orders", "Track Order", "Returns & Refunds", "Shipping Policy", "FAQs", "Help Center", "Contact Us"].map((l) => (
-                <span key={l} className="landing-footer-link">
-                  <ChevronRight size={10} /> {l}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Company */}
-          <div>
-            <div className="landing-footer-section-title">Company</div>
-            <div className="landing-footer-links">
-              {["About Us", "How It Works", "Materials", "Blog", "Careers", "Terms & Conditions", "Privacy Policy"].map((l) => (
+              {["Track Order", "Returns & Refunds", "Shipping Policy", "FAQs", "Help Center"].map((l) => (
                 <span key={l} className="landing-footer-link">
                   <ChevronRight size={10} /> {l}
                 </span>
@@ -326,11 +338,40 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             <div className="landing-footer-newsletter">
               <p>Subscribe to our newsletter and get updates on offers and new products.</p>
               <div className="landing-footer-newsletter-input">
-                <input type="email" placeholder="Enter your email address" />
-                <button title="Subscribe"><Send size={16} /></button>
+                <input 
+                  type="email" 
+                  placeholder="Enter your email address" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={subStatus === "loading" || subStatus === "success"}
+                />
+                <button 
+                  title="Subscribe" 
+                  onClick={handleSubscribe}
+                  disabled={subStatus === "loading" || subStatus === "success" || !email}
+                >
+                  {subStatus === "loading" ? <Loader2 size={16} className="animate-spin" /> : 
+                   subStatus === "success" ? <CheckCircle2 size={16} /> : 
+                   <Send size={16} />}
+                </button>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                <input type="checkbox" defaultChecked style={{ accentColor: "var(--accent)" }} />
+              {subStatus === "success" && (
+                <div style={{ color: "#10B981", fontSize: "0.7rem", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+                  Successfully subscribed! 🎉
+                </div>
+              )}
+              {subStatus === "error" && (
+                <div style={{ color: "#EF4444", fontSize: "0.7rem", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+                  Something went wrong. Try again.
+                </div>
+              )}
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 8 }}>
+                <input 
+                  type="checkbox" 
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  style={{ accentColor: "var(--accent)" }} 
+                />
                 <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#666" }}>
                   I agree to receive updates & offers
                 </span>
@@ -342,7 +383,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
         {/* Footer bottom */}
         <div className="landing-footer-bottom">
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#444" }}>
-            © 2024 <span style={{ color: "var(--accent)" }}>Unique3DPrinters</span>. All rights reserved.
+            © 2026 <span style={{ color: "var(--accent)" }}>Unique3DPrinters</span>. All rights reserved.
           </div>
 
           <div className="landing-footer-social">

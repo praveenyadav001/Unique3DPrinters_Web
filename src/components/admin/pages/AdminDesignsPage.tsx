@@ -103,19 +103,30 @@ export default function AdminDesignsPage() {
       </div>
 
       {showModal && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="dash-card" style={{ width: 400, maxWidth: "90vw", padding: 24 }}>
-            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.2rem", marginBottom: 16 }}>Add New Design</h3>
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeIn 0.2s ease" }}>
+          <div className="glass-card animate-scaleIn" style={{ width: 440, maxWidth: "90vw", padding: 32, position: "relative", overflow: "hidden", border: "1px solid rgba(255, 92, 0, 0.3)", boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 92, 0, 0.1)" }}>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Decorative background glow */}
+            <div style={{ position: "absolute", top: -50, right: -50, width: 150, height: 150, background: "var(--accent)", filter: "blur(80px)", opacity: 0.3, pointerEvents: "none" }} />
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(var(--accent-rgb), 0.15)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Plus size={18} />
+              </div>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>Add New Design</h3>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <label className="dash-label">Design Name</label>
-                <input type="text" className="dash-input" value={newName} onChange={e => setNewName(e.target.value)} />
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  Design Name <span style={{ color: "var(--accent)" }}>*</span>
+                </label>
+                <input type="text" className="dash-input" placeholder="e.g. Articulated Dragon" value={newName} onChange={e => setNewName(e.target.value)} style={{ padding: "12px 16px", fontSize: "0.9rem", background: "rgba(0,0,0,0.4)" }} />
               </div>
               
               <div>
-                <label className="dash-label">Category</label>
-                <select className="dash-select" value={newCat} onChange={e => setNewCat(e.target.value)}>
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>Category</label>
+                <select className="dash-select" value={newCat} onChange={e => setNewCat(e.target.value)} style={{ padding: "12px 16px", fontSize: "0.9rem", background: "rgba(0,0,0,0.4)" }}>
                   <option>Home Decor</option>
                   <option>Toys</option>
                   <option>Accessories</option>
@@ -125,21 +136,25 @@ export default function AdminDesignsPage() {
               </div>
 
               <div>
-                <label className="dash-label">Base Price (₹)</label>
-                <input type="number" className="dash-input" value={newPrice} onChange={e => setNewPrice(e.target.value)} />
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>Base Price (₹)</label>
+                <input type="number" className="dash-input" placeholder="0.00" value={newPrice} onChange={e => setNewPrice(e.target.value)} style={{ padding: "12px 16px", fontSize: "0.9rem", background: "rgba(0,0,0,0.4)" }} />
               </div>
 
               <div>
-                <label className="dash-label">STL File</label>
-                <button className="dash-btn-primary dash-btn-small" style={{ width: "100%", justifyContent: "center", display: "flex", alignItems: "center", gap: 6, background: "#222", border: "1px dashed #444", color: "#ccc" }}>
-                  <UploadCloud size={14} /> Upload STL
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>STL File</label>
+                <button className="dash-upload-zone" style={{ width: "100%", padding: "24px", display: "flex", flexDirection: "row", alignItems: "center", gap: 16, background: "rgba(0,0,0,0.4)", border: "1px dashed rgba(255,255,255,0.2)" }}>
+                  <div className="upload-icon" style={{ width: 40, height: 40, borderRadius: 10 }}><UploadCloud size={18} /></div>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem", color: "#fff", fontWeight: 600 }}>Click to upload STL</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#777", marginTop: 4 }}>Maximum file size: 50MB</div>
+                  </div>
                 </button>
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button className="dash-btn-primary" style={{ flex: 1, background: "transparent", border: "1px solid #333", color: "#ccc" }} onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={handleSave}>Save Design</button>
+            <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
+              <button className="dash-btn-secondary" style={{ flex: 1, padding: "12px", fontSize: "0.9rem" }} onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center", padding: "12px", fontSize: "0.9rem" }} onClick={handleSave}>Save Design</button>
             </div>
           </div>
         </div>

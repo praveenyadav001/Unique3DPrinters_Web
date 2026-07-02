@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { FolderTree, Grid3X3, Loader, Plus, Search, ToggleLeft, ToggleRight } from "lucide-react";
 import { useDesigns } from "@/hooks/useDesigns";
+import { createCategory, updateCategory } from "@/services/designs.service";
 
 export default function AdminCategoriesPage() {
   const { categories, designs, loading } = useDesigns();
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState("Products");
+  const [newEmoji, setNewEmoji] = useState("📁");
+  const [isSaving, setIsSaving] = useState(false);
 
   const filtered = categories.filter((category) =>
     [category.name, category.type].some((value) => value.toLowerCase().includes(search.toLowerCase()))
@@ -13,6 +19,35 @@ export default function AdminCategoriesPage() {
   const totalDesigns = designs.length;
   const activeCategories = categories.filter((category) => category.isActive).length;
 
+  const handleSave = async () => {
+    if (!newName) return;
+    setIsSaving(true);
+    try {
+      await createCategory({
+        name: newName,
+        type: newType,
+        emoji: newEmoji,
+        order: categories.length + 1,
+        isActive: true,
+      });
+      setShowModal(false);
+      setNewName("");
+      setNewEmoji("📁");
+    } catch (error) {
+      console.error("Failed to create category", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleCategoryStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateCategory(id, { isActive: !currentStatus });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
@@ -20,7 +55,7 @@ export default function AdminCategoriesPage() {
           <h2>Category Collections</h2>
           <p>Organize storefront browsing groups and catalog navigation.</p>
         </div>
-        <button className="dash-btn-primary">
+        <button className="dash-btn-primary" onClick={() => setShowModal(true)}>
           <Plus size={16} /> New Collection
         </button>
       </div>
@@ -69,7 +104,7 @@ export default function AdminCategoriesPage() {
                       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: "#666" }}>{category.type}</div>
                     </div>
                   </div>
-                  <span className={`dash-badge ${category.isActive ? "dash-badge-green" : "dash-badge-red"}`}>
+                  <span className={`dash-badge ${category.isActive ? "dash-badge-green" : "dash-badge-red"}`} style={{ fontSize: "0.65rem", padding: "4px 8px", borderRadius: 4, background: category.isActive ? "rgba(16, 185, 129, 0.1)" : "rgba(234, 179, 8, 0.1)", color: category.isActive ? "#10B981" : "#EAB308" }}>
                     {category.isActive ? "Active" : "Hidden"}
                   </span>
                 </div>
@@ -86,8 +121,8 @@ export default function AdminCategoriesPage() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
-                  <button className="dash-btn-secondary dash-btn-small">Edit Collection</button>
-                  <button className="dashboard-icon-btn" title={category.isActive ? "Deactivate" : "Activate"}>
+                  <button className="dash-btn-secondary dash-btn-small" style={{ fontSize: "0.7rem", padding: "6px 12px" }}>Edit Collection</button>
+                  <button className="dashboard-icon-btn" title={category.isActive ? "Deactivate" : "Activate"} onClick={() => toggleCategoryStatus(category.id, category.isActive)}>
                     {category.isActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
                   </button>
                 </div>
@@ -96,6 +131,54 @@ export default function AdminCategoriesPage() {
           })}
         </div>
       )}
+
+      {showModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeIn 0.2s ease" }}>
+          <div className="glass-card animate-scaleIn" style={{ width: 400, maxWidth: "90vw", padding: 32, position: "relative", overflow: "hidden", border: "1px solid rgba(255, 92, 0, 0.3)", boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 92, 0, 0.1)" }}>
+            
+            <div style={{ position: "absolute", top: -50, right: -50, width: 150, height: 150, background: "var(--accent)", filter: "blur(80px)", opacity: 0.3, pointerEvents: "none" }} />
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(var(--accent-rgb), 0.15)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Plus size={18} />
+              </div>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>Add Collection</h3>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div>
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  Collection Name <span style={{ color: "var(--accent)" }}>*</span>
+                </label>
+                <input type="text" className="dash-input" placeholder="e.g. Home Decor" value={newName} onChange={e => setNewName(e.target.value)} style={{ padding: "12px 16px", fontSize: "0.9rem", background: "rgba(0,0,0,0.4)" }} />
+              </div>
+              
+              <div>
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>Collection Type</label>
+                <select className="dash-select" value={newType} onChange={e => setNewType(e.target.value)} style={{ padding: "12px 16px", fontSize: "0.9rem", background: "rgba(0,0,0,0.4)" }}>
+                  <option>Products</option>
+                  <option>Themes</option>
+                  <option>Seasonal</option>
+                  <option>Utility</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>Emoji / Icon</label>
+                <input type="text" className="dash-input" placeholder="📁" maxLength={2} value={newEmoji} onChange={e => setNewEmoji(e.target.value)} style={{ padding: "12px 16px", fontSize: "1.2rem", background: "rgba(0,0,0,0.4)", textAlign: "center", width: "60px" }} />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
+              <button className="dash-btn-secondary" style={{ flex: 1, padding: "12px", fontSize: "0.9rem" }} onClick={() => setShowModal(false)} disabled={isSaving}>Cancel</button>
+              <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center", padding: "12px", fontSize: "0.9rem", opacity: isSaving ? 0.7 : 1 }} onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Collection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

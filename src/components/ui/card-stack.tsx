@@ -274,8 +274,8 @@ export function CardStack<T extends CardStackItem>({
                 <motion.div
                   key={item.id}
                   className={cn(
-                    "absolute bottom-0 rounded-2xl border-4 border-black/10 dark:border-white/10 overflow-hidden shadow-xl max-w-[90vw]",
-                    "will-change-transform select-none",
+                    "absolute bottom-0 rounded-2xl border-[3px] overflow-hidden max-w-[90vw]",
+                    "will-change-transform select-none transition-shadow duration-500",
                     isActive
                       ? "cursor-grab active:cursor-grabbing"
                       : "cursor-pointer",
@@ -285,6 +285,10 @@ export function CardStack<T extends CardStackItem>({
                     height: cardHeight,
                     zIndex,
                     transformStyle: "preserve-3d",
+                    borderColor: isActive ? "var(--accent)" : "rgba(255, 92, 0, 0.3)",
+                    boxShadow: isActive 
+                      ? "0 0 35px rgba(255, 92, 0, 0.5), inset 0 0 15px rgba(255, 92, 0, 0.3)" 
+                      : "0 0 15px rgba(255, 92, 0, 0.15)",
                   }}
                   initial={
                     reduceMotion
