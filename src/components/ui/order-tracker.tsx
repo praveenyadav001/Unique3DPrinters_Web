@@ -921,7 +921,6 @@ export default function OrderStatusTracker() {
 
             </div>
           ) : (
-            /* Placeholder state awaiting tracking ID */
             <Card className="bg-[#0b0b0b]/60 border-neutral-900 text-center py-16 px-6 max-w-lg mx-auto shadow-2xl backdrop-blur-md">
               <CardContent className="space-y-4">
                 <div className="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full border border-neutral-800 bg-[#050505]">
@@ -930,10 +929,10 @@ export default function OrderStatusTracker() {
                 </div>
                 <div>
                   <h4 className="text-xs uppercase font-mono font-bold text-white tracking-widest">
-                    Awaiting Connection Link
+                    Search an Order ID
                   </h4>
                   <p className="text-[10px] text-neutral-500 font-mono mt-2 leading-relaxed">
-                    Provide a valid client order reference key (e.g. <span className="text-white">ORD-1002</span>) to establish a satellite link to the assigned 3D printing module.
+                    Enter a real order reference from your account to load the current production stage, assigned printer details, and shipping tracking when available.
                   </p>
                 </div>
               </CardContent>

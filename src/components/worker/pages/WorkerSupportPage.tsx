@@ -10,6 +10,19 @@ const FAQS = [
 
 export default function WorkerSupportPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [submittedTicket, setSubmittedTicket] = useState<{ id: string; subject: string; category: string } | null>(null);
+  const [ticketForm, setTicketForm] = useState({
+    category: "Technical Issue",
+    subject: "",
+    description: "",
+  });
+
+  const handleSubmitTicket = (e: React.FormEvent) => {
+    e.preventDefault();
+    const id = `SUP-${Date.now().toString().slice(-6)}`;
+    setSubmittedTicket({ id, subject: ticketForm.subject, category: ticketForm.category });
+    setTicketForm({ category: "Technical Issue", subject: "", description: "" });
+  };
 
   return (
     <div className="dashboard-page">
@@ -74,10 +87,21 @@ export default function WorkerSupportPage() {
             <MessageSquare size={18} style={{ color: "var(--accent)" }} /> Contact Admin
           </h3>
           
-          <form onSubmit={(e) => { e.preventDefault(); alert("Ticket submitted successfully!"); }}>
+          {submittedTicket && (
+            <div style={{ padding: "12px 14px", border: "1px solid rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.08)", borderRadius: 8, marginBottom: 16 }}>
+              <div style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontWeight: 700 }}>
+                Ticket {submittedTicket.id} Submitted
+              </div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#10B981", marginTop: 4 }}>
+                {submittedTicket.category} - {submittedTicket.subject}
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmitTicket}>
             <div style={{ marginBottom: 16 }}>
               <label className="dash-label">Category</label>
-              <select className="dash-select">
+              <select className="dash-select" value={ticketForm.category} onChange={(e) => setTicketForm({ ...ticketForm, category: e.target.value })}>
                 <option>Technical Issue</option>
                 <option>Material Request</option>
                 <option>HR / Payroll</option>
@@ -88,13 +112,15 @@ export default function WorkerSupportPage() {
             
             <div style={{ marginBottom: 16 }}>
               <label className="dash-label">Subject</label>
-              <input className="dash-input" placeholder="Brief summary of the issue" required />
+              <input className="dash-input" value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" required />
             </div>
             
             <div style={{ marginBottom: 24 }}>
               <label className="dash-label">Description</label>
               <textarea 
                 className="dash-input" 
+                value={ticketForm.description}
+                onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
                 placeholder="Provide detailed information..." 
                 rows={5} 
                 style={{ resize: "vertical" }}

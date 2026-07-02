@@ -7,6 +7,8 @@ import {
 import { CardStack, CardStackItem } from "../ui/card-stack";
 import { ParticleTextEffect } from "../ui/particle-text-effect";
 import { HowItWorksSection } from "./HowItWorksSection";
+import { motion } from "framer-motion";
+import { STLUploader } from "./STLUploader";
 import heroVideo from "@/assets/background video/slight_motion_effect_video_for.mp4";
 
 interface LandingPageProps {
@@ -112,38 +114,70 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
 
       {/* ═══ HERO ════════════════════════════════════════ */}
       <section className="hero-centered relative">
-        <video 
-          autoPlay 
-          loop 
-          muted 
+        <video
+          autoPlay
+          loop
+          muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
-          style={{ opacity: 0.3 }}
         >
           <source src={heroVideo} type="video/mp4" />
         </video>
+        <div className="absolute inset-0 z-0" style={{ background: "rgba(0,0,0,0.6)" }} />
         <div className="hero-mesh-bg z-0" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/50 to-[#050505] z-0 pointer-events-none" />
-        
-        <div className="hero-pill-badge z-10">
-          <span>✨ The Future of 3D Printing</span>
-        </div>
-        <div className="z-10 -mt-8 -mb-4 w-full flex justify-center relative">
-          <ParticleTextEffect words={["BRING YOUR IDEAS\nTO LIFE"]} />
-        </div>
-        <p className="hero-subtitle z-10 relative">
-          Design, customize, and order high quality 3D printed products easily. Upload your STL, OBJ, or 3MF files and get them delivered to your doorstep.
-        </p>
-        <div style={{ display: "flex", gap: 14, marginBottom: 0 }} className="z-10 relative">
-          <button className="dash-btn-primary" onClick={onLoginClick} style={{ padding: "14px 32px", fontSize: "1rem" }}>
-            Start Designing <PenTool size={16} />
-          </button>
-          <button className="dash-btn-secondary" onClick={onLoginClick} style={{ padding: "14px 32px", fontSize: "1rem" }}>
-            Upload Design <UploadCloud size={16} />
-          </button>
-        </div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="hero-pill-badge z-10"
+        >
+          <span>✨ The Future of 3D Printing</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="z-10 w-full flex justify-center relative mb-4"
+        >
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white text-center tracking-tight drop-shadow-2xl" style={{ fontFamily: "'Rajdhani', sans-serif", margin: "0 0 24px" }}>
+            PRECISION <br className="md:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[#007BFF]">3D PRINTING</span>
+          </h1>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+        >
+          <p className="hero-subtitle z-10 relative text-lg md:text-xl text-zinc-300 max-w-2xl text-center" style={{ margin: "0 auto 40px" }}>
+            From concept to creation — fast, accurate, reliable.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+          style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", marginBottom: 0 }}
+          className="z-10 relative mt-4"
+        >
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-primary-glow" onClick={onLoginClick}>
+            Upload Model <UploadCloud size={18} />
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-secondary-glow" onClick={onLoginClick}>
+            Get Quote <ArrowRight size={18} />
+          </motion.button>
+        </motion.div>
       </section>
+
+      {/* ═══ STL UPLOADER ════════════════════════════════ */}
+      <STLUploader />
+
+      {/* ═══ HOW IT WORKS REDESIGN ═════════════════════ */}
+      <HowItWorksSection />
 
       {/* ═══ CONSOLIDATED TRUST & STATS STRIP ════════════ */}
       <section className="consolidated-strip reveal-on-scroll">
@@ -159,9 +193,6 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
           </div>
         ))}
       </section>
-
-      {/* ═══ HOW IT WORKS REDESIGN ═════════════════════ */}
-      <HowItWorksSection />
 
       {/* ═══ EXPLORE CATEGORIES ═══════════════════════════ */}
       <section className="landing-section reveal-on-scroll" style={{ paddingTop: 80, overflow: "hidden" }}>

@@ -62,6 +62,8 @@ import AdminSettingsPage from "@/components/admin/pages/AdminSettingsPage";
 import AdminWebsiteSettingsPage from "@/components/admin/pages/AdminWebsiteSettingsPage";
 import AdminAnalyticsPage from "@/components/admin/pages/AdminAnalyticsPage";
 import AdminUploadDesignPage from "@/components/admin/pages/AdminUploadDesignPage";
+import AdminPaymentsPage from "@/components/admin/pages/AdminPaymentsPage";
+import AdminDiscountsPage from "@/components/admin/pages/AdminDiscountsPage";
 
 function formatPageTitle(page: string) {
   return page.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
@@ -215,31 +217,9 @@ function AdminDashboardView({ onLogout }: { onLogout: () => void }) {
       case "website-settings": return <AdminWebsiteSettingsPage />;
       case "analytics": return <AdminAnalyticsPage />;
       case "quotes": return <AdminOrdersPage customOnly={true} />;
-      case "payments": return (
-        <div className="dashboard-page">
-          <div className="dashboard-page-header">
-            <h2>Payment Transactions</h2>
-            <p>View real-time checkout payment history and statuses.</p>
-          </div>
-          <div className="dash-card">
-            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff", marginBottom: 16 }}>Transaction Logs</h3>
-            <p style={{ color: "#888", fontSize: "0.75rem", fontFamily: "'DM Mono', monospace" }}>Stripe / Razorpay sandbox transaction feeds verified.</p>
-          </div>
-        </div>
-      );
-      case "discounts":
-      case "coupons": return (
-        <div className="dashboard-page">
-          <div className="dashboard-page-header">
-            <h2>Discounts & Coupons</h2>
-            <p>Configure active promo codes and dynamic seasonal pricing discounts.</p>
-          </div>
-          <div className="dash-card">
-            <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff", marginBottom: 16 }}>Active Promo Codes</h3>
-            <p style={{ color: "#888", fontSize: "0.75rem", fontFamily: "'DM Mono', monospace" }}>No active coupons. Create new to initiate campaign.</p>
-          </div>
-        </div>
-      );
+      case "payments": return <AdminPaymentsPage />;
+      case "discounts": return <AdminDiscountsPage mode="discounts" />;
+      case "coupons": return <AdminDiscountsPage mode="coupons" />;
       default: return (
         <div className="dashboard-page">
           <div className="dashboard-page-header">

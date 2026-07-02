@@ -6,6 +6,7 @@ import {
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { updateOrderStatus } from "@/services/orders.service";
+import type { OrderStatus } from "@/types/firebase.types";
 
 import { usePrinters } from "@/hooks/usePrinters";
 import { useMaterials } from "@/hooks/useMaterials";
@@ -86,17 +87,41 @@ export default function WorkerHomePage() {
     status: o.status,
   }));
 
-  const handleUpdateStatus = async (docId: string, newStatus: string) => {
+  const handleUpdateStatus = async (docId: string, newStatus: OrderStatus) => {
     try {
-      await updateOrderStatus(docId, newStatus as any);
+      await updateOrderStatus(docId, newStatus);
     } catch (error) {
       console.error("Failed to update status", error);
       alert("Failed to update status.");
     }
   };
 
-  // TODO: Wire these handlers to UI buttons when worker action buttons are added
-  // updateOrderStatus and updateWorkerStatus can be imported from their services
+  const getTaskActions = (status: OrderStatus) => {
+    switch (status) {
+      case "Pending":
+        return [{ label: "Confirm", nextStatus: "Confirmed" as OrderStatus, tone: "primary" }];
+      case "Confirmed":
+        return [{ label: "Start Prep", nextStatus: "Processing" as OrderStatus, tone: "primary" }];
+      case "Processing":
+        return [{ label: "Start Print", nextStatus: "Printing" as OrderStatus, tone: "primary" }];
+      case "Printing":
+        return [{ label: "Finish Print", nextStatus: "Post Processing" as OrderStatus, tone: "primary" }];
+      case "Post Processing":
+        return [{ label: "Ship", nextStatus: "Shipped" as OrderStatus, tone: "primary" }];
+      case "Shipped":
+        return [{ label: "Deliver", nextStatus: "Delivered" as OrderStatus, tone: "primary" }];
+      default:
+        return [];
+    }
+  };
+
+  const visibleTasks = TASKS.filter((task) => {
+    if (taskTab === "All") return true;
+    if (taskTab === "Pending") return task.status === "Pending" || task.status === "Confirmed";
+    if (taskTab === "In") return task.status === "Processing" || task.status === "Printing" || task.status === "Post Processing";
+    if (taskTab === "Completed") return task.status === "Delivered" || task.status === "Shipped";
+    return true;
+  });
 
   const tabs = [`All (${totalTasks})`, `Pending (${pendingTasks})`, `In Progress (${inProgressTasks})`, `Completed (${completedTasks})`];
 
@@ -158,7 +183,7 @@ export default function WorkerHomePage() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'DM Mono', monospace", fontSize: "0.7rem" }}>
               <thead>
                 <tr>
-                  {["Order ID", "Task", "Design", "Printer", "Due Time", "Status"].map((h) => (
+                  {["Order ID", "Task", "Design", "Printer", "Due Time", "Status", "Actions"].map((h) => (
                     <th key={h} style={{
                       textAlign: "left", padding: "10px 16px", color: "#444", borderBottom: "1px solid #1a1a1a",
                       fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.1em",
@@ -167,7 +192,10 @@ export default function WorkerHomePage() {
                 </tr>
               </thead>
               <tbody>
-                {TASKS.map((t) => (
+                {visibleTasks.map((t) => {
+                  const actions = getTaskActions(t.status as OrderStatus);
+                  const canCancel = !["Cancelled", "Delivered", "Shipped"].includes(t.status);
+                  return (
                   <tr key={t.id} style={{ borderBottom: "1px solid #111" }}>
                     <td style={{ padding: "12px 16px", color: "var(--accent)", fontWeight: 600 }}>#{t.id}</td>
                     <td style={{ padding: "12px 16px", color: "#ccc" }}>{t.task}</td>
@@ -178,22 +206,39 @@ export default function WorkerHomePage() {
                     </td>
                     <td style={{ padding: "12px 16px", color: "#888" }}>{t.printer}</td>
                     <td style={{ padding: "12px 16px", color: "#888" }}>{t.due}</td>
-                    <td style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <td style={{ padding: "12px 16px" }}>
                       <span className={`dash-badge ${t.status === "Processing" || t.status === "Printing" ? "dash-badge-accent" : "dash-badge-yellow"}`}>
                         {t.status}
                       </span>
-                      {t.status === "Processing" && (
-                        <button onClick={() => handleUpdateStatus(t.docId, "Printing")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Start Print</button>
-                      )}
-                      {t.status === "Printing" && (
-                        <button onClick={() => handleUpdateStatus(t.docId, "Post Processing")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Finish Print</button>
-                      )}
-                      {t.status === "Post Processing" && (
-                        <button onClick={() => handleUpdateStatus(t.docId, "Shipped")} className="dash-btn-primary dash-btn-small" style={{ padding: "4px 8px", fontSize: "0.6rem" }}>Ship</button>
-                      )}
+                    </td>
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 170 }}>
+                        {actions.map((action) => (
+                          <button
+                            key={action.nextStatus}
+                            onClick={() => handleUpdateStatus(t.docId, action.nextStatus)}
+                            className="dash-btn-primary dash-btn-small"
+                            style={{ padding: "5px 10px", fontSize: "0.6rem" }}
+                          >
+                            {action.label}
+                          </button>
+                        ))}
+                        {canCancel && (
+                          <button
+                            onClick={() => handleUpdateStatus(t.docId, "Cancelled")}
+                            className="dash-btn-secondary dash-btn-small"
+                            style={{ padding: "5px 10px", fontSize: "0.6rem", color: "#EF4444", borderColor: "rgba(239,68,68,0.35)" }}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        {actions.length === 0 && !canCancel && (
+                          <span style={{ color: "#555", fontSize: "0.6rem" }}>No actions</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
