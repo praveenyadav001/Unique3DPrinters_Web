@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { User, Mail, Phone, MapPin, Briefcase, Camera, Save } from "lucide-react";
+import { User, Mail, Phone, MapPin, Briefcase, Camera, Save, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { updateUserProfile } from "@/services/auth.service";
 
 export default function WorkerProfilePage() {
-  const { userProfile } = useAuth();
-  
+  const { user, userProfile } = useAuth();
+  const [saving, setSaving] = useState(false);
+
   // Local state for the form, initialized from profile
   const [formData, setFormData] = useState({
     firstName: userProfile?.firstName || "",
@@ -19,10 +21,33 @@ export default function WorkerProfilePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would call an updateProfile service
-    alert("Profile update functionality would save to Firestore here.");
+    if (!user) return;
+
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim()) {
+      alert("Please enter at least your first name, last name, and phone number.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await updateUserProfile(user.uid, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        pincode: formData.pincode,
+      });
+      alert("Profile updated!");
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      alert("Failed to save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!userProfile) return null;
@@ -138,13 +163,15 @@ export default function WorkerProfilePage() {
             </div>
 
             <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid #1a1a1a", paddingTop: 20 }}>
-              <button type="submit" className="dash-btn-primary">
-                <Save size={16} /> Save Changes
+              <button type="submit" className="dash-btn-primary" disabled={saving} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} style={{ animation: "spin 0.8s linear infinite" }} /> : <Save size={16} />}
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

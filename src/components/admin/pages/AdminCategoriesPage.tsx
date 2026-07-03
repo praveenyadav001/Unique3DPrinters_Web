@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { FolderTree, Grid3X3, Loader, Plus, Search, ToggleLeft, ToggleRight } from "lucide-react";
+import { FolderTree, Grid3X3, Loader, Plus, Search, ToggleLeft, ToggleRight, Edit2 } from "lucide-react";
 import { useDesigns } from "@/hooks/useDesigns";
 import { createCategory, updateCategory } from "@/services/designs.service";
+import type { CategoryDoc } from "@/types/firebase.types";
 
 export default function AdminCategoriesPage() {
   const { categories, designs, loading } = useDesigns();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("Products");
   const [newEmoji, setNewEmoji] = useState("📁");
@@ -19,22 +21,36 @@ export default function AdminCategoriesPage() {
   const totalDesigns = designs.length;
   const activeCategories = categories.filter((category) => category.isActive).length;
 
+  const openAdd = () => {
+    setEditId(null); setNewName(""); setNewType("Products"); setNewEmoji("📁"); setShowModal(true);
+  };
+
+  const openEdit = (c: CategoryDoc) => {
+    setEditId(c.id); setNewName(c.name); setNewType(c.type); setNewEmoji(c.emoji || "📁"); setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!newName) return;
     setIsSaving(true);
     try {
-      await createCategory({
-        name: newName,
-        type: newType,
-        emoji: newEmoji,
-        order: categories.length + 1,
-        isActive: true,
-      });
+      if (editId) {
+        await updateCategory(editId, { name: newName, type: newType, emoji: newEmoji });
+      } else {
+        await createCategory({
+          name: newName,
+          type: newType,
+          emoji: newEmoji,
+          order: categories.length + 1,
+          isActive: true,
+        });
+      }
       setShowModal(false);
       setNewName("");
       setNewEmoji("📁");
+      setEditId(null);
     } catch (error) {
-      console.error("Failed to create category", error);
+      console.error("Failed to save category", error);
+      alert("Failed to save collection. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -55,7 +71,7 @@ export default function AdminCategoriesPage() {
           <h2>Category Collections</h2>
           <p>Organize storefront browsing groups and catalog navigation.</p>
         </div>
-        <button className="dash-btn-primary" onClick={() => setShowModal(true)}>
+        <button className="dash-btn-primary" onClick={openAdd}>
           <Plus size={16} /> New Collection
         </button>
       </div>
@@ -121,7 +137,7 @@ export default function AdminCategoriesPage() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
-                  <button className="dash-btn-secondary dash-btn-small" style={{ fontSize: "0.7rem", padding: "6px 12px" }}>Edit Collection</button>
+                  <button className="dash-btn-secondary dash-btn-small" style={{ fontSize: "0.7rem", padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }} onClick={() => openEdit(category)}><Edit2 size={12} /> Edit Collection</button>
                   <button className="dashboard-icon-btn" title={category.isActive ? "Deactivate" : "Activate"} onClick={() => toggleCategoryStatus(category.id, category.isActive)}>
                     {category.isActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
                   </button>
@@ -140,9 +156,9 @@ export default function AdminCategoriesPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(var(--accent-rgb), 0.15)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Plus size={18} />
+                {editId ? <Edit2 size={18} /> : <Plus size={18} />}
               </div>
-              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>Add Collection</h3>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>{editId ? "Edit Collection" : "Add Collection"}</h3>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -172,7 +188,7 @@ export default function AdminCategoriesPage() {
             <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
               <button className="dash-btn-secondary" style={{ flex: 1, padding: "12px", fontSize: "0.9rem" }} onClick={() => setShowModal(false)} disabled={isSaving}>Cancel</button>
               <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center", padding: "12px", fontSize: "0.9rem", opacity: isSaving ? 0.7 : 1 }} onClick={handleSave} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Collection"}
+                {isSaving ? "Saving..." : editId ? "Update Collection" : "Save Collection"}
               </button>
             </div>
           </div>

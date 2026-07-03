@@ -95,6 +95,45 @@ export default function AdminAnalyticsPage() {
   const totalCustomers = customers.length;
   const activeDesigns = designs.length;
 
+  const handleExportCSV = () => {
+    if (!orders.length) {
+      alert("No orders to export yet.");
+      return;
+    }
+
+    const headers = [
+      "Order Number", "Date", "Customer", "Email", "Status",
+      "Payment Method", "Payment Status", "Items", "Total (INR)",
+    ];
+
+    // Wrap fields containing commas/quotes/newlines per RFC 4180.
+    const escape = (val: any) => {
+      const s = String(val ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const rows = orders.map((o) => {
+      const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt as any);
+      const dateStr = isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-IN");
+      const items = (o.items || []).map((it) => `${it.designName} x${it.quantity}`).join("; ");
+      return [
+        o.orderNumber, dateStr, o.customerName, o.customerEmail, o.status,
+        o.paymentMethod, o.paymentStatus, items, o.total,
+      ].map(escape).join(",");
+    });
+
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -102,7 +141,7 @@ export default function AdminAnalyticsPage() {
           <h2>Website Analytics</h2>
           <p>Traffic, conversions, and user behavior metrics from real database.</p>
         </div>
-        <button className="dash-btn-secondary" onClick={() => alert("CSV Export feature ready.")}>
+        <button className="dash-btn-secondary" onClick={handleExportCSV}>
           <DownloadCloud size={16} /> Export CSV
         </button>
       </div>

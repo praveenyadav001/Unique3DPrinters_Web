@@ -1,9 +1,13 @@
 import {
-  Package, CheckCircle2, Printer, Truck, MapPin, Clock, HelpCircle,
+  Package, CheckCircle2, Printer, Truck, MapPin, Clock, XCircle, MessageCircle, Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOrders } from "@/hooks/useOrders";
 import type { OrderDoc } from "@/types/firebase.types";
+
+// Support contact (WhatsApp + email) surfaced via the "Need Help?" actions.
+const SUPPORT_PHONE = "918466800143";
+const SUPPORT_EMAIL = "support@unique3dprinters.com";
 
 const STATUS_STEPS = [
   { key: "Pending", label: "Order Placed", icon: <Package size={16} /> },
@@ -14,8 +18,9 @@ const STATUS_STEPS = [
 ];
 
 function normalizeTimelineStatus(orderStatus: string) {
-  if (orderStatus === "Processing" || orderStatus === "Post Processing") return "Printing";
-  if (orderStatus === "Cancelled") return "Pending";
+  // "Processing" (worker assigned) reaches the Confirmed step; actual printing advances it further.
+  if (orderStatus === "Processing") return "Confirmed";
+  if (orderStatus === "Post Processing") return "Printing";
   return orderStatus;
 }
 
@@ -81,8 +86,6 @@ export default function OrderTrackingPage() {
     );
   }
 
-  const statusColor = getStatusColor(selectedOrder.status);
-
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
@@ -98,34 +101,61 @@ export default function OrderTrackingPage() {
               <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#fff", margin: 0, textTransform: "uppercase" }}>
                 Order #{selectedOrder.orderNumber}
               </h3>
-              <span className={`dash-badge ${selectedOrder.status === "Delivered" ? "dash-badge-green" : "dash-badge-yellow"}`}>
-                <Clock size={10} /> {selectedOrder.status}
+              <span className={`dash-badge ${selectedOrder.status === "Delivered" ? "dash-badge-green" : selectedOrder.status === "Cancelled" ? "dash-badge-red" : "dash-badge-yellow"}`}>
+                {selectedOrder.status === "Cancelled" ? <XCircle size={10} /> : <Clock size={10} />} {selectedOrder.status}
               </span>
             </div>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#555", margin: 0 }}>
               Placed on {formatDate(selectedOrder.createdAt)} | Total ₹{selectedOrder.total?.toLocaleString()}
             </p>
           </div>
-          <button className="dash-btn-secondary dash-btn-small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <HelpCircle size={14} /> Need Help?
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <a
+              href={`https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(`Hi, I need help with my order #${selectedOrder.orderNumber}.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="dash-btn-secondary dash-btn-small"
+              style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+            >
+              <MessageCircle size={14} /> WhatsApp
+            </a>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Help with order #${selectedOrder.orderNumber}`)}&body=${encodeURIComponent(`Hi,\n\nI need help with my order #${selectedOrder.orderNumber}.\n\n`)}`}
+              className="dash-btn-secondary dash-btn-small"
+              style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+            >
+              <Mail size={14} /> Email
+            </a>
+          </div>
         </div>
 
-        {/* Timeline */}
-        <div className="dash-timeline" style={{ margin: "32px 0" }}>
-          {STATUS_STEPS.map((s) => {
-            const state = getStepState(selectedOrder.status, s.key);
-            return (
-              <div key={s.key} className={`dash-timeline-step ${state}`}>
-                <div className="dash-timeline-dot">{s.icon}</div>
-                <div className="dash-timeline-label">{s.label}</div>
-                <div className="dash-timeline-date">
-                  {state === "completed" ? "Done" : state === "active" ? "In Progress" : "Pending"}
-                </div>
+        {/* Timeline (or cancelled banner) */}
+        {selectedOrder.status === "Cancelled" ? (
+          <div style={{ margin: "24px 0", padding: "18px 20px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", display: "flex", alignItems: "center", gap: 12 }}>
+            <XCircle size={22} style={{ color: "#EF4444", flexShrink: 0 }} />
+            <div>
+              <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: "#EF4444" }}>Order Cancelled</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#888", marginTop: 2 }}>
+                This order has been cancelled. If a payment was made, any refund will be processed shortly.
               </div>
-            );
-          })}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div className="dash-timeline" style={{ margin: "32px 0" }}>
+            {STATUS_STEPS.map((s) => {
+              const state = getStepState(selectedOrder.status, s.key);
+              return (
+                <div key={s.key} className={`dash-timeline-step ${state}`}>
+                  <div className="dash-timeline-dot">{s.icon}</div>
+                  <div className="dash-timeline-label">{s.label}</div>
+                  <div className="dash-timeline-date">
+                    {state === "completed" ? "Done" : state === "active" ? "In Progress" : "Pending"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Order Items + Details */}

@@ -99,10 +99,12 @@ export default function AdminSidebar({ activePage, onNavigate, isOpen, onClose, 
             borderRadius: 10, marginBottom: 12,
           }}>
             <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.85rem", color: "#fff" }}>Need Help?</div>
-            <button style={{
-              background: "none", border: "none", color: "var(--accent)", fontFamily: "'DM Mono', monospace",
-              fontSize: "0.65rem", cursor: "pointer", padding: 0, marginTop: 4,
-            }}>Contact Support</button>
+            <button
+              onClick={() => window.open(`https://wa.me/918466800143?text=${encodeURIComponent("Hi, I need help with the Unique3DPrinters admin dashboard.")}`, "_blank", "noopener,noreferrer")}
+              style={{
+                background: "none", border: "none", color: "var(--accent)", fontFamily: "'DM Mono', monospace",
+                fontSize: "0.65rem", cursor: "pointer", padding: 0, marginTop: 4,
+              }}>Contact Support</button>
           </div>
           <button
             onClick={onLogout}

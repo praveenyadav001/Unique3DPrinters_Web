@@ -1,43 +1,78 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, Search, UploadCloud, Loader } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, UploadCloud, Loader, Loader2 } from "lucide-react";
 import { useDesigns } from "@/hooks/useDesigns";
-import { createDesign, deleteDesign } from "@/services/designs.service";
+import { createDesign, deleteDesign, updateDesign } from "@/services/designs.service";
+import { uploadDesignModel } from "@/services/storage.service";
 import { useAuth } from "@/hooks/useAuth";
+import type { DesignDoc } from "@/types/firebase.types";
 
 export default function AdminDesignsPage() {
   const { designs, categories, loading } = useDesigns();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Form State
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("Home Decor");
   const [newPrice, setNewPrice] = useState("");
+  const [modelFile, setModelFile] = useState<File | null>(null);
 
   const filtered = designs.filter(d => d.name.toLowerCase().includes(search.toLowerCase()));
 
+  const openAdd = () => {
+    setEditId(null); setNewName(""); setNewCat("Home Decor"); setNewPrice(""); setModelFile(null); setShowModal(true);
+  };
+
+  const openEdit = (d: DesignDoc) => {
+    setEditId(d.id); setNewName(d.name); setNewCat(d.category); setNewPrice(String(d.price)); setModelFile(null); setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!newName || !newPrice) return;
+    setSaving(true);
     try {
-      await createDesign({
-        name: newName,
-        category: newCat,
-        price: Number(newPrice),
-        emoji: "📦",
-        imageURL: "",
-        description: "",
-        materials: [],
-        colors: [],
-        isActive: true,
-        stock: 10,
-        createdBy: user?.uid || "admin",
-      });
+      let modelURL: string | undefined;
+      if (modelFile) {
+        modelURL = await uploadDesignModel(user?.uid || "admin", modelFile);
+      }
+
+      if (editId) {
+        await updateDesign(editId, {
+          name: newName,
+          category: newCat,
+          price: Number(newPrice),
+          ...(modelURL ? { modelURL } : {}),
+        });
+      } else {
+        await createDesign({
+          name: newName,
+          category: newCat,
+          price: Number(newPrice),
+          emoji: "📦",
+          imageURL: "",
+          description: "",
+          materials: [],
+          colors: [],
+          isActive: true,
+          stock: 10,
+          createdBy: user?.uid || "admin",
+          ...(modelURL ? { modelURL } : {}),
+        });
+      }
+
       setShowModal(false);
       setNewName("");
       setNewPrice("");
+      setModelFile(null);
+      setEditId(null);
     } catch (error) {
-      console.error("Failed to create design", error);
+      console.error("Failed to save design", error);
+      alert("Failed to save design. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -58,7 +93,7 @@ export default function AdminDesignsPage() {
           <h2>Product Catalog (Designs)</h2>
           <p>Manage the 3D designs available on the store.</p>
         </div>
-        <button className="dash-btn-primary" onClick={() => setShowModal(true)}>
+        <button className="dash-btn-primary" onClick={openAdd}>
           <Plus size={16} style={{ marginRight: 6 }} /> Add Design
         </button>
       </div>
@@ -92,7 +127,7 @@ export default function AdminDesignsPage() {
                 <td style={{ padding: "12px 16px", color: "#ccc" }}>{d.salesCount || 0}</td>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }}><Edit2 size={14} /></button>
+                    <button style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }} onClick={() => openEdit(d)} title="Edit design"><Edit2 size={14} /></button>
                     <button style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer" }} onClick={() => handleDelete(d.id)}><Trash2 size={14} /></button>
                   </div>
                 </td>
@@ -111,9 +146,9 @@ export default function AdminDesignsPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(var(--accent-rgb), 0.15)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Plus size={18} />
+                {editId ? <Edit2 size={18} /> : <Plus size={18} />}
               </div>
-              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>Add New Design</h3>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", color: "#fff", fontSize: "1.4rem", margin: 0, fontWeight: 700 }}>{editId ? "Edit Design" : "Add New Design"}</h3>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -141,20 +176,28 @@ export default function AdminDesignsPage() {
               </div>
 
               <div>
-                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>STL File</label>
-                <button className="dash-upload-zone" style={{ width: "100%", padding: "24px", display: "flex", flexDirection: "row", alignItems: "center", gap: 16, background: "rgba(0,0,0,0.4)", border: "1px dashed rgba(255,255,255,0.2)" }}>
+                <label className="dash-label" style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>STL File {editId && <span style={{ color: "#555" }}>(optional — leave empty to keep current)</span>}</label>
+                <input id="admin-stl-input" type="file" accept=".stl,.obj,.3mf" style={{ display: "none" }} onChange={(e) => setModelFile(e.target.files?.[0] || null)} />
+                <button type="button" onClick={() => document.getElementById("admin-stl-input")?.click()} className="dash-upload-zone" style={{ width: "100%", padding: "24px", display: "flex", flexDirection: "row", alignItems: "center", gap: 16, background: "rgba(0,0,0,0.4)", border: `1px dashed ${modelFile ? "var(--accent)" : "rgba(255,255,255,0.2)"}` }}>
                   <div className="upload-icon" style={{ width: 40, height: 40, borderRadius: 10 }}><UploadCloud size={18} /></div>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem", color: "#fff", fontWeight: 600 }}>Click to upload STL</div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#777", marginTop: 4 }}>Maximum file size: 50MB</div>
+                  <div style={{ textAlign: "left", minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "0.9rem", color: "#fff", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {modelFile ? modelFile.name : "Click to upload STL"}
+                    </div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#777", marginTop: 4 }}>
+                      {modelFile ? `${(modelFile.size / 1024 / 1024).toFixed(2)} MB selected` : "Maximum file size: 50MB"}
+                    </div>
                   </div>
                 </button>
               </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
-              <button className="dash-btn-secondary" style={{ flex: 1, padding: "12px", fontSize: "0.9rem" }} onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center", padding: "12px", fontSize: "0.9rem" }} onClick={handleSave}>Save Design</button>
+              <button className="dash-btn-secondary" style={{ flex: 1, padding: "12px", fontSize: "0.9rem" }} onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+              <button className="dash-btn-primary" style={{ flex: 1, justifyContent: "center", padding: "12px", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 8 }} onClick={handleSave} disabled={saving}>
+                {saving && <Loader2 size={15} style={{ animation: "spin 0.8s linear infinite" }} />}
+                {saving ? "Saving..." : editId ? "Update Design" : "Save Design"}
+              </button>
             </div>
           </div>
         </div>

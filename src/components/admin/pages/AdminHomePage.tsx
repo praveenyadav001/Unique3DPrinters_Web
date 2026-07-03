@@ -346,7 +346,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
             <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: "#fff", margin: 0, textTransform: "uppercase" }}>
               Top Selling Designs
             </h3>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
+            <span onClick={() => onNavigate("designs")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
           </div>
           {realTopDesigns.length > 0 ? realTopDesigns.map((d) => (
             <div key={d.rank} style={{
@@ -421,7 +421,7 @@ export default function AdminHomePage({ onNavigate }: AdminHomePageProps) {
             <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: "#fff", margin: 0, textTransform: "uppercase" }}>
               Low Stock Designs
             </h3>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
+            <span onClick={() => onNavigate("designs")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "var(--accent)", cursor: "pointer" }}>View All</span>
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'DM Mono', monospace", fontSize: "0.65rem" }}>
             <thead>

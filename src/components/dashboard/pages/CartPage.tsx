@@ -66,17 +66,29 @@ export default function CartPage({ onNavigate }: CartPageProps) {
     }
 
     setPlacingOrder(true);
-    
-    // Process Payment
-    const paymentResult = await processPayment(total, "INR");
-    if (!paymentResult.success) {
-      setPlacingOrder(false);
-      alert(paymentResult.error || "Payment failed.");
-      return;
+
+    const isCOD = paymentMethod === "cod";
+    let transactionId: string | undefined;
+
+    // Process payment upfront for prepaid methods; COD is collected on delivery.
+    if (!isCOD) {
+      const paymentResult = await processPayment(total, "INR", {
+        name: deliveryForm.fullName,
+        email: userProfile.email || "",
+        contact: deliveryForm.phone,
+      });
+      if (!paymentResult.success) {
+        setPlacingOrder(false);
+        alert(paymentResult.error || "Payment failed.");
+        return;
+      }
+      transactionId = paymentResult.transactionId;
     }
 
     try {
       const newOrderId = await createOrder({
+        paymentStatus: isCOD ? "Pending" : "Paid",
+        transactionId,
         customerId: user.uid,
         customerName: deliveryForm.fullName || "Customer",
         customerEmail: userProfile.email || "",
@@ -157,7 +169,8 @@ export default function CartPage({ onNavigate }: CartPageProps) {
             Order ID: <span style={{ color: "var(--accent)" }}>{orderId.slice(0, 12).toUpperCase()}</span>
           </p>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444", marginBottom: 32 }}>
-            Total Paid: <span style={{ color: "var(--accent)", fontWeight: 700 }}>₹{total.toLocaleString()}</span>
+            {paymentMethod === "cod" ? "Amount Due (COD): " : "Total Paid: "}
+            <span style={{ color: "var(--accent)", fontWeight: 700 }}>₹{total.toLocaleString()}</span>
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
             <button className="dash-btn-secondary" onClick={() => { setCheckoutStep("cart"); onNavigate("our-designs"); }}>
@@ -349,7 +362,9 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                 style={{ width: "100%", justifyContent: "center", background: "#10B981", display: "flex", alignItems: "center", gap: 8 }}
                 onClick={handlePlaceOrder}>
                 {placingOrder && <Loader2 size={14} style={{ animation: "spin 0.8s linear infinite" }} />}
-                {placingOrder ? "Processing Payment..." : `Pay ₹${total.toLocaleString()}`}
+                {placingOrder
+                  ? (paymentMethod === "cod" ? "Placing Order..." : "Processing Payment...")
+                  : (paymentMethod === "cod" ? "Place Order (COD)" : `Pay ₹${total.toLocaleString()}`)}
               </button>
               <button className="dash-btn-secondary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setCheckoutStep("cart")}>
                 Back to Cart

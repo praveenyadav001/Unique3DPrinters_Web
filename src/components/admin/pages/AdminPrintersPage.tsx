@@ -1,7 +1,8 @@
-import { AlertCircle, Cpu, Plus, Printer, ShieldCheck, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, Cpu, Plus, Printer, ShieldCheck, Trash2, X, Loader2 } from "lucide-react";
 import { useWorkers } from "@/hooks/useWorkers";
 import { usePrinters } from "@/hooks/usePrinters";
-import { deletePrinter, updatePrinter } from "@/services/printers.service";
+import { createPrinter, deletePrinter, updatePrinter } from "@/services/printers.service";
 
 const STATUS_CLASS: Record<string, string> = {
   Active: "dash-badge-green",
@@ -11,9 +12,39 @@ const STATUS_CLASS: Record<string, string> = {
   Offline: "dash-badge-red",
 };
 
+const EMPTY_PRINTER = { name: "", type: "FDM", status: "Idle" as const };
+
 export default function AdminPrintersPage() {
   const { workers } = useWorkers();
   const { printers, loading } = usePrinters();
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState<{ name: string; type: string; status: string }>(EMPTY_PRINTER);
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!form.name.trim()) {
+      alert("Please enter a printer name.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await createPrinter({
+        name: form.name.trim(),
+        type: form.type,
+        status: form.status as any,
+        assignedWorkerId: null,
+        assignedWorkerName: null,
+        currentJobId: null,
+      });
+      setShowAdd(false);
+      setForm(EMPTY_PRINTER);
+    } catch (err) {
+      console.error("Failed to create printer", err);
+      alert("Failed to add printer. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleAssignWorker = async (printerId: string, workerId: string) => {
     try {
@@ -43,7 +74,7 @@ export default function AdminPrintersPage() {
           <h2>Printers & Workers</h2>
           <p>Manage physical 3D printers and assign workers to them.</p>
         </div>
-        <button className="dash-btn-primary"><Plus size={16} style={{ marginRight: 6 }} /> Add Printer</button>
+        <button className="dash-btn-primary" onClick={() => setShowAdd(true)}><Plus size={16} style={{ marginRight: 6 }} /> Add Printer</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12, marginBottom: 18 }}>
@@ -125,6 +156,48 @@ export default function AdminPrintersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ── Add Printer Modal ─────────────────────────── */}
+      {showAdd && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setShowAdd(false)}
+        >
+          <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 16, padding: 28, width: 420, maxWidth: "90vw" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#fff", margin: 0, textTransform: "uppercase" }}>Add Printer</h3>
+              <button onClick={() => setShowAdd(false)} style={{ background: "#0D0D0D", border: "1px solid #222", borderRadius: 8, color: "#666", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={16} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label className="dash-label">Printer Name</label>
+                <input className="dash-input" placeholder="e.g. Bambu Lab X1-C #2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label className="dash-label">Type</label>
+                  <select className="dash-select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                    <option value="FDM">FDM</option>
+                    <option value="Resin">Resin</option>
+                    <option value="SLA">SLA</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="dash-label">Status</label>
+                  <select className="dash-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    {["Idle", "Active", "Printing", "Maintenance", "Offline"].map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <button className="dash-btn-primary" onClick={handleCreate} disabled={saving} style={{ justifyContent: "center", marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} style={{ animation: "spin 0.8s linear infinite" }} /> : <Plus size={16} />}
+                {saving ? "Adding..." : "Add Printer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

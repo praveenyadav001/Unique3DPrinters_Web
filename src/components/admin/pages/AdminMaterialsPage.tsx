@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { AlertTriangle, Boxes, Plus, Search, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
+import { AlertTriangle, Boxes, Plus, Search, ToggleLeft, ToggleRight, Trash2, X, Loader2 } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
-import { deleteMaterial, updateMaterial } from "@/services/materials.service";
+import { createMaterial, deleteMaterial, updateMaterial } from "@/services/materials.service";
+
+const EMPTY_MATERIAL = { name: "", type: "PLA", color: "#00E5FF", pricePerUnit: "", stock: "", unit: "kg" };
 
 export default function AdminMaterialsPage() {
   const { materials, loading } = useMaterials();
   const [search, setSearch] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState(EMPTY_MATERIAL);
+  const [saving, setSaving] = useState(false);
 
   const filtered = materials.filter((material) =>
     [material.name, material.type, material.color].some((value) => value.toLowerCase().includes(search.toLowerCase()))
@@ -19,6 +24,32 @@ export default function AdminMaterialsPage() {
     }
   };
 
+  const handleCreate = async () => {
+    if (!form.name.trim() || !form.type.trim()) {
+      alert("Please enter a material name and type.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await createMaterial({
+        name: form.name.trim(),
+        type: form.type.trim(),
+        color: form.color,
+        pricePerUnit: parseFloat(form.pricePerUnit) || 0,
+        stock: parseFloat(form.stock) || 0,
+        unit: form.unit,
+        isActive: true,
+      });
+      setShowAdd(false);
+      setForm(EMPTY_MATERIAL);
+    } catch (err) {
+      console.error("Failed to create material", err);
+      alert("Failed to create material. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -26,7 +57,7 @@ export default function AdminMaterialsPage() {
           <h2>Materials & Inventory</h2>
           <p>Track stock levels and pricing per material.</p>
         </div>
-        <button className="dash-btn-primary"><Plus size={16} style={{ marginRight: 6 }} /> Add Material</button>
+        <button className="dash-btn-primary" onClick={() => setShowAdd(true)}><Plus size={16} style={{ marginRight: 6 }} /> Add Material</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12, marginBottom: 18 }}>
@@ -89,6 +120,56 @@ export default function AdminMaterialsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ── Add Material Modal ─────────────────────────── */}
+      {showAdd && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setShowAdd(false)}
+        >
+          <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 16, padding: 28, width: 440, maxWidth: "90vw" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#fff", margin: 0, textTransform: "uppercase" }}>Add Material</h3>
+              <button onClick={() => setShowAdd(false)} style={{ background: "#0D0D0D", border: "1px solid #222", borderRadius: 8, color: "#666", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={16} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label className="dash-label">Material Name</label>
+                <input className="dash-input" placeholder="e.g. PolyTerra PLA" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label className="dash-label">Type</label>
+                  <input className="dash-input" placeholder="PLA / ABS / Resin" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} />
+                </div>
+                <div>
+                  <label className="dash-label">Color</label>
+                  <input type="color" className="dash-input" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} style={{ height: 42, padding: 4 }} />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div>
+                  <label className="dash-label">Price/Unit (₹)</label>
+                  <input className="dash-input" type="number" placeholder="2.50" value={form.pricePerUnit} onChange={(e) => setForm({ ...form, pricePerUnit: e.target.value })} />
+                </div>
+                <div>
+                  <label className="dash-label">Stock</label>
+                  <input className="dash-input" type="number" placeholder="5" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
+                </div>
+                <div>
+                  <label className="dash-label">Unit</label>
+                  <input className="dash-input" placeholder="kg" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                </div>
+              </div>
+              <button className="dash-btn-primary" onClick={handleCreate} disabled={saving} style={{ justifyContent: "center", marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                {saving ? <Loader2 size={16} style={{ animation: "spin 0.8s linear infinite" }} /> : <Plus size={16} />}
+                {saving ? "Adding..." : "Add Material"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

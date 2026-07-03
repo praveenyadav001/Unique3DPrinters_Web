@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Mail, Phone, MapPin, ShoppingBag } from "lucide-react";
+import { Search, Mail, Phone, MapPin, ShoppingBag, X } from "lucide-react";
 import { useCustomers } from "@/hooks/useWorkers";
 import { useOrders } from "@/hooks/useOrders";
 
@@ -13,6 +13,7 @@ export default function AdminCustomersPage() {
   const { customers, loading } = useCustomers();
   const { orders } = useOrders();
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewCustomerId, setViewCustomerId] = useState<string | null>(null);
 
   // Enrich customers with order data
   const enrichedCustomers = customers.map((c) => {
@@ -127,12 +128,14 @@ export default function AdminCustomersPage() {
                   <td style={{ padding: "12px 16px", color: "var(--accent)", fontWeight: 600 }}>₹{c.totalSpent.toLocaleString()}</td>
                   <td style={{ padding: "12px 16px", color: "#666" }}>{formatDate(c.createdAt)}</td>
                   <td style={{ padding: "12px 16px" }}>
-                    <button style={{
-                      padding: "4px 10px", background: "rgba(var(--accent-rgb), 0.08)",
-                      border: "1px solid rgba(var(--accent-rgb), 0.2)", borderRadius: 6,
-                      color: "var(--accent)", fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
-                      cursor: "pointer", textTransform: "uppercase",
-                    }}>View</button>
+                    <button
+                      onClick={() => setViewCustomerId(c.uid)}
+                      style={{
+                        padding: "4px 10px", background: "rgba(var(--accent-rgb), 0.08)",
+                        border: "1px solid rgba(var(--accent-rgb), 0.2)", borderRadius: 6,
+                        color: "var(--accent)", fontFamily: "'DM Mono', monospace", fontSize: "0.6rem",
+                        cursor: "pointer", textTransform: "uppercase",
+                      }}>View</button>
                   </td>
                 </tr>
               ))}
@@ -147,6 +150,111 @@ export default function AdminCustomersPage() {
           </table>
         </div>
       </div>
+
+      {/* ── Customer Detail Modal ─────────────────────────── */}
+      {viewCustomerId && (() => {
+        const c = enrichedCustomers.find((x) => x.uid === viewCustomerId);
+        if (!c) return null;
+        const customerOrders = orders
+          .filter((o) => o.customerId === c.uid)
+          .sort((a, b) => {
+            const da = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+            const db = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+            return db - da;
+          });
+        return (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.8)",
+              backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center",
+              animation: "dashPageIn 0.2s ease forwards", padding: 20,
+            }}
+            onClick={() => setViewCustomerId(null)}
+          >
+            <div
+              style={{
+                background: "#111", border: "1px solid #1a1a1a", borderRadius: 16,
+                padding: 28, width: 520, maxWidth: "90vw", maxHeight: "85vh", overflowY: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: "50%", background: "rgba(var(--accent-rgb), 0.12)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "var(--accent)",
+                  }}>
+                    {c.displayName?.split(" ").map((n) => n[0]).join("") || "?"}
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "#fff", margin: 0 }}>{c.displayName}</h3>
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#555", margin: "2px 0 0" }}>ID: {c.uid}</p>
+                  </div>
+                </div>
+                <button onClick={() => setViewCustomerId(null)} style={{
+                  background: "#0D0D0D", border: "1px solid #222", borderRadius: 8,
+                  color: "#666", width: 32, height: 32, display: "flex", alignItems: "center",
+                  justifyContent: "center", cursor: "pointer",
+                }}><X size={16} /></button>
+              </div>
+
+              {/* Contact + stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                {[
+                  { icon: <Mail size={12} />, label: "Email", value: c.email || "—" },
+                  { icon: <Phone size={12} />, label: "Phone", value: c.phone || "—" },
+                  { icon: <MapPin size={12} />, label: "City", value: c.city || "—" },
+                  { icon: <ShoppingBag size={12} />, label: "Joined", value: formatDate(c.createdAt) },
+                ].map((f, i) => (
+                  <div key={i} style={{ background: "#0D0D0D", border: "1px solid #1a1a1a", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#555", textTransform: "uppercase", marginBottom: 4 }}>
+                      {f.icon} {f.label}
+                    </div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#ccc", wordBreak: "break-word" }}>{f.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                <div style={{ flex: 1, background: "rgba(var(--accent-rgb), 0.06)", border: "1px solid rgba(var(--accent-rgb), 0.15)", borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "1.4rem", color: "var(--accent)" }}>{c.orderCount}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#666", textTransform: "uppercase" }}>Total Orders</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 800, fontSize: "1.4rem", color: "#10B981" }}>₹{c.totalSpent.toLocaleString()}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#666", textTransform: "uppercase" }}>Total Spent</div>
+                </div>
+              </div>
+
+              {/* Order history */}
+              <h4 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.9rem", color: "#fff", margin: "0 0 12px", textTransform: "uppercase" }}>
+                Order History
+              </h4>
+              {customerOrders.length === 0 ? (
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#555", textAlign: "center", padding: "16px 0" }}>
+                  No orders placed yet.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {customerOrders.map((o) => (
+                    <div key={o.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0D0D0D", border: "1px solid #1a1a1a", borderRadius: 8, padding: "10px 14px" }}>
+                      <div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "var(--accent)", fontWeight: 600 }}>#{o.orderNumber}</div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#555" }}>{formatDate(o.createdAt)}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#888" }}>{o.status}</span>
+                        <span style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "#ccc" }}>₹{o.total?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

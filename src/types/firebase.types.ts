@@ -119,6 +119,7 @@ export interface OrderDoc {
   total: number;
   paymentMethod: string;
   paymentStatus: "Pending" | "Paid" | "Refunded";
+  transactionId?: string;
   // Shipping
   shippingAddress: ShippingAddress;
   // Tracking
@@ -164,6 +165,7 @@ export interface PrinterDoc {
   type: "FDM" | "Resin" | "SLA" | string;
   status: "Active" | "Idle" | "Printing" | "Maintenance" | "Offline";
   assignedWorkerId: string | null;
+  assignedWorkerName?: string | null;
   currentJobId: string | null;
   currentJobName?: string;
   currentTemp?: string;

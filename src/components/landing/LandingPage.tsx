@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { AnimeNavBar } from "../ui/anime-navbar";
 import { CardStack, CardStackItem } from "../ui/card-stack";
-import { ParticleTextEffect } from "../ui/particle-text-effect";
 import { HowItWorksSection } from "./HowItWorksSection";
 import { motion } from "framer-motion";
 import { STLUploader } from "./STLUploader";

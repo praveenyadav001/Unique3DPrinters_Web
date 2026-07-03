@@ -40,6 +40,8 @@ export async function createOrder(data: {
   shippingCost: number;
   discount: number;
   total: number;
+  paymentStatus?: "Pending" | "Paid" | "Refunded";
+  transactionId?: string;
 }): Promise<string> {
   const orderNumber = await generateOrderNumber();
 
@@ -57,7 +59,9 @@ export async function createOrder(data: {
     discount: data.discount,
     total: data.total,
     paymentMethod: data.paymentMethod,
-    paymentStatus: "Paid",
+    paymentStatus: data.paymentStatus ?? "Paid",
+    // Firestore rejects `undefined`, so only include when a transaction id exists (prepaid).
+    ...(data.transactionId ? { transactionId: data.transactionId } : {}),
     shippingAddress: data.shippingAddress,
     statusHistory: [
       {
