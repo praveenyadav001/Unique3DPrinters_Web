@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { SquareArrowOutUpRight } from "lucide-react";
+import { SquareArrowOutUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import PulsingBorder from "@/components/ui/pulsing-border";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -202,11 +203,17 @@ export function CardStack<T extends CardStackItem>({
     >
       {/* Stage */}
       <div
-        className="relative w-full max-w-full"
+        className="relative w-full max-w-full group/stage"
         style={{ height: Math.max(380, cardHeight + 80) }}
         tabIndex={0}
         onKeyDown={onKeyDown}
       >
+        <button onClick={prev} className="absolute left-2 md:left-10 top-1/2 -translate-y-1/2 z-[150] p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all opacity-0 group-hover/stage:opacity-100 hidden md:block">
+          <ChevronLeft size={36} />
+        </button>
+        <button onClick={next} className="absolute right-2 md:right-10 top-1/2 -translate-y-1/2 z-[150] p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all opacity-0 group-hover/stage:opacity-100 hidden md:block">
+          <ChevronRight size={36} />
+        </button>
         {/* background wash / spotlight (unique feel) */}
         <div
           className="pointer-events-none absolute inset-x-0 top-6 mx-auto h-48 w-[70%] rounded-full bg-black/5 blur-3xl dark:bg-white/5"
@@ -274,7 +281,7 @@ export function CardStack<T extends CardStackItem>({
                 <motion.div
                   key={item.id}
                   className={cn(
-                    "absolute bottom-0 rounded-2xl border-[3px] overflow-hidden max-w-[90vw]",
+                    "absolute bottom-0 rounded-2xl border-[2px] overflow-hidden max-w-[90vw] group",
                     "will-change-transform select-none transition-shadow duration-500",
                     isActive
                       ? "cursor-grab active:cursor-grabbing"
@@ -287,7 +294,7 @@ export function CardStack<T extends CardStackItem>({
                     transformStyle: "preserve-3d",
                     borderColor: isActive ? "var(--accent)" : "rgba(255, 92, 0, 0.3)",
                     boxShadow: isActive 
-                      ? "0 0 35px rgba(255, 92, 0, 0.5), inset 0 0 15px rgba(255, 92, 0, 0.3)" 
+                      ? "0 0 15px rgba(255, 92, 0, 0.4), inset 0 0 8px rgba(255, 92, 0, 0.2)" 
                       : "0 0 15px rgba(255, 92, 0, 0.15)",
                   }}
                   initial={
@@ -305,7 +312,7 @@ export function CardStack<T extends CardStackItem>({
                   animate={{
                     opacity: 1,
                     x,
-                    y: y + lift,
+                    y: isActive ? [y + lift, y + lift - 8, y + lift] : y + lift,
                     rotateZ,
                     rotateX,
                     scale,
@@ -314,6 +321,14 @@ export function CardStack<T extends CardStackItem>({
                     type: "spring",
                     stiffness: springStiffness,
                     damping: springDamping,
+                    y: isActive ? { repeat: Infinity, duration: 4, ease: "easeInOut" } : undefined
+                  }}
+                  whileHover={{
+                    scale: isActive ? activeScale : inactiveScale * 1.04,
+                    rotateZ: isActive ? 0 : rotateZ + (off > 0 ? 2 : -2),
+                    boxShadow: isActive 
+                      ? "0 0 20px rgba(255, 92, 0, 0.6), inset 0 0 10px rgba(255, 92, 0, 0.3)" 
+                      : "0 0 25px rgba(255, 92, 0, 0.3)"
                   }}
                   onClick={() => setActive(i)}
                   {...dragProps}
@@ -340,52 +355,71 @@ export function CardStack<T extends CardStackItem>({
 
       {/* Dots navigation centered at bottom */}
       {showDots ? (
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mt-4 flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center">
             {items.map((it, idx) => {
               const on = idx === active;
+              const isLast = idx === items.length - 1;
               return (
-                <button
-                  key={it.id}
-                  onClick={() => setActive(idx)}
-                  className={cn(
-                    "h-2 w-2 rounded-full transition-all",
-                    on
-                      ? "bg-white w-4"
-                      : "bg-white/30 hover:bg-white/50",
+                <React.Fragment key={it.id}>
+                  <button
+                    onClick={() => setActive(idx)}
+                    className="relative flex items-center justify-center h-6 w-6 group/dot"
+                    aria-label={`Go to ${it.title}`}
+                  >
+                    <div className={cn(
+                      "rounded-full transition-all duration-300",
+                      on ? "h-2.5 w-2.5 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" : "h-1.5 w-1.5 bg-zinc-600 group-hover/dot:bg-zinc-400 group-hover/dot:scale-150"
+                    )} />
+                    {on && <div className="absolute inset-0 rounded-full border border-cyan-400/40 scale-150 animate-pulse" />}
+                  </button>
+                  {!isLast && (
+                    <div className="w-8 sm:w-12 h-[1px] bg-zinc-800" />
                   )}
-                  aria-label={`Go to ${it.title}`}
-                />
+                </React.Fragment>
               );
             })}
           </div>
-          {activeItem.href ? (
-            <a
-              href={activeItem.href}
-              target="_blank"
-              rel="noreferrer"
-              className="text-white/60 hover:text-white transition"
-              aria-label="Open link"
-            >
-              <SquareArrowOutUpRight className="h-4 w-4" />
-            </a>
-          ) : null}
         </div>
       ) : null}
     </div>
   );
 }
 
-function DefaultFanCard({ item }: { item: CardStackItem; active: boolean }) {
+function DefaultFanCard({ item, active }: { item: CardStackItem; active: boolean }) {
   return (
     <div className="relative h-full w-full">
+      <PulsingBorder
+        colors={active ? ["#00E5FF", "#FFFFFF", "#FF5C00"] : ["#00E5FF", "#FF5C00"]}
+        colorBack="#00000000"
+        roundness={0.08}
+        thickness={active ? 0.18 : 0.1}
+        softness={0.24}
+        intensity={active ? 0.72 : 0.45}
+        bloom={active ? 0.65 : 0.35}
+        spots={active ? 3 : 2}
+        spotSize={0.18}
+        pulse={0.38}
+        smoke={0.25}
+        smokeSize={0.32}
+        speed={active ? 0.58 : 0.34}
+        scale={1}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      />
       {/* image */}
-      <div className="absolute inset-0 bg-[#0A0A0A]">
+      <div className="absolute inset-0 bg-[#0A0A0A] overflow-hidden">
         {item.imageSrc ? (
           <img
             src={item.imageSrc}
             alt={item.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             draggable={false}
             loading="eager"
           />
@@ -397,7 +431,7 @@ function DefaultFanCard({ item }: { item: CardStackItem; active: boolean }) {
       </div>
 
       {/* subtle gradient overlay at bottom for text readability */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
       {/* content */}
       <div className="relative z-10 flex h-full flex-col justify-end p-6">

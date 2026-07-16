@@ -132,13 +132,18 @@ export async function triggerOrderEmail(
   customerName: string
 ): Promise<void> {
   try {
-    await fetch("/api/sendEmail", {
+    const res = await fetch("/api/sendEmail", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderId, status, customerEmail, customerName }),
     });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+    }
   } catch (e) {
     console.error("Failed to trigger email API manually", e);
+    throw e; // re-throw to be caught by the UI
   }
 }
 
@@ -163,6 +168,40 @@ export async function unassignWorker(orderId: string): Promise<void> {
   await updateDoc(ref, {
     assignedWorkerId: null,
     assignedWorkerName: null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// ─── Set Prices for Custom Upload Items (Admin) ─────────────
+// Admin reviews a customer-uploaded design and assigns unit prices.
+// Recalculates subtotal/tax/total and records the quote in status history.
+export async function setOrderItemPrices(
+  orderId: string,
+  itemPrices: number[]
+): Promise<void> {
+  const ref = doc(db, "orders", orderId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("Order not found");
+  const order = snap.data() as OrderDoc;
+
+  const items = order.items.map((item, i) => ({
+    ...item,
+    price: itemPrices[i] ?? item.price,
+  }));
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const shippingCost = order.shippingCost || 40;
+  const tax = Math.floor(subtotal * 0.18);
+  const total = subtotal + shippingCost + tax - (order.discount || 0);
+
+  await updateDoc(ref, {
+    items,
+    subtotal,
+    total,
+    statusHistory: arrayUnion({
+      status: order.status,
+      timestamp: Timestamp.now(),
+      note: `Price quoted: ₹${total.toLocaleString()}`,
+    }),
     updatedAt: serverTimestamp(),
   });
 }

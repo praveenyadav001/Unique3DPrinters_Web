@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Edit2, Trash2, Search, UploadCloud, Loader, Loader2 } from "lucide-react";
 import { useDesigns } from "@/hooks/useDesigns";
 import { createDesign, deleteDesign, updateDesign } from "@/services/designs.service";
-import { uploadDesignModel } from "@/services/storage.service";
+import { uploadDesignModel } from "@/services/cloudinary.service";
 import { useAuth } from "@/hooks/useAuth";
 import type { DesignDoc } from "@/types/firebase.types";
 

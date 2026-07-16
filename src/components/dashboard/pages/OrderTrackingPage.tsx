@@ -106,7 +106,10 @@ export default function OrderTrackingPage() {
               </span>
             </div>
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#555", margin: 0 }}>
-              Placed on {formatDate(selectedOrder.createdAt)} | Total ₹{selectedOrder.total?.toLocaleString()}
+              Placed on {formatDate(selectedOrder.createdAt)} | Total{" "}
+              {selectedOrder.items?.some((i) => !i.designId && i.price === 0)
+                ? <span style={{ color: "#EAB308" }}>Awaiting price quote</span>
+                : <>₹{selectedOrder.total?.toLocaleString()}</>}
             </p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -177,7 +180,11 @@ export default function OrderTrackingPage() {
                   {item.material} • {item.color} • Qty: {item.quantity}
                 </div>
               </div>
-              <span className="dash-cart-item-price">₹{(item.price * item.quantity).toLocaleString()}</span>
+              <span className="dash-cart-item-price">
+                {!item.designId && item.price === 0
+                  ? <span style={{ color: "#EAB308", fontSize: "0.7rem" }}>Pending quote</span>
+                  : <>₹{(item.price * item.quantity).toLocaleString()}</>}
+              </span>
             </div>
           ))}
         </div>
@@ -234,7 +241,11 @@ export default function OrderTrackingPage() {
                   <td style={{ padding: "12px 14px", color: "var(--accent)", fontWeight: 600 }}>#{order.orderNumber}</td>
                   <td style={{ padding: "12px 14px", color: "#ccc" }}>{order.items?.map((i) => i.designName).join(", ")}</td>
                   <td style={{ padding: "12px 14px", color: "#666" }}>{formatDate(order.createdAt)}</td>
-                  <td style={{ padding: "12px 14px", color: "#ccc" }}>₹{order.total?.toLocaleString()}</td>
+                  <td style={{ padding: "12px 14px", color: "#ccc" }}>
+                    {order.items?.some((i) => !i.designId && i.price === 0)
+                      ? <span style={{ color: "#EAB308", fontSize: "0.65rem" }}>Pending quote</span>
+                      : <>₹{order.total?.toLocaleString()}</>}
+                  </td>
                   <td style={{ padding: "12px 14px" }}>
                     <span style={{ color: rowColor, fontWeight: 600 }}>
                       {order.status === "Delivered" && <CheckCircle2 size={10} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />}

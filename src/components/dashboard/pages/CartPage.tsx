@@ -17,6 +17,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
   const [paymentMethod, setPaymentMethod] = useState("upi");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [wasQuoteRequest, setWasQuoteRequest] = useState(false);
 
   const [deliveryForm, setDeliveryForm] = useState({
     fullName: userProfile?.displayName || "",
@@ -39,6 +40,8 @@ export default function CartPage({ onNavigate }: CartPageProps) {
   }, [userProfile]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Custom uploads have price 0 until admin reviews and assigns a price
+  const hasPendingPricing = cartItems.some((item) => !item.designId && item.price === 0);
   const shipping = subtotal > 0 ? 40 : 0;
   const tax = Math.floor(subtotal * 0.18);
   const total = subtotal + shipping + tax;
@@ -67,7 +70,8 @@ export default function CartPage({ onNavigate }: CartPageProps) {
 
     setPlacingOrder(true);
 
-    const isCOD = paymentMethod === "cod";
+    // Orders with pending-price custom uploads skip payment — admin quotes first, customer pays after.
+    const isCOD = paymentMethod === "cod" || hasPendingPricing;
     let transactionId: string | undefined;
 
     // Process payment upfront for prepaid methods; COD is collected on delivery.
@@ -117,6 +121,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
         total,
       });
       setOrderId(newOrderId);
+      setWasQuoteRequest(hasPendingPricing);
       setCheckoutStep("success");
       await clearAll();
     } catch (err) {
@@ -163,14 +168,20 @@ export default function CartPage({ onNavigate }: CartPageProps) {
             fontFamily: "'Rajdhani', sans-serif", fontWeight: 800,
             fontSize: "1.6rem", color: "#fff", marginBottom: 8,
           }}>
-            Order Placed Successfully!
+            {wasQuoteRequest ? "Request Submitted!" : "Order Placed Successfully!"}
           </h2>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#555", marginBottom: 8 }}>
             Order ID: <span style={{ color: "var(--accent)" }}>{orderId.slice(0, 12).toUpperCase()}</span>
           </p>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#444", marginBottom: 32 }}>
-            {paymentMethod === "cod" ? "Amount Due (COD): " : "Total Paid: "}
-            <span style={{ color: "var(--accent)", fontWeight: 700 }}>₹{total.toLocaleString()}</span>
+            {wasQuoteRequest ? (
+              <span style={{ color: "#EAB308" }}>Our team will review your design and send you a price quote.</span>
+            ) : (
+              <>
+                {paymentMethod === "cod" ? "Amount Due (COD): " : "Total Paid: "}
+                <span style={{ color: "var(--accent)", fontWeight: 700 }}>₹{total.toLocaleString()}</span>
+              </>
+            )}
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
             <button className="dash-btn-secondary" onClick={() => { setCheckoutStep("cart"); onNavigate("our-designs"); }}>
@@ -234,7 +245,11 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                       {item.material} • {item.color} • {item.size || "100%"}
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-                      <span className="dash-badge dash-badge-blue">Unit ₹{item.price.toLocaleString()}</span>
+                      {!item.designId && item.price === 0 ? (
+                        <span className="dash-badge" style={{ background: "rgba(234, 179, 8, 0.1)", border: "1px solid rgba(234, 179, 8, 0.3)", color: "#EAB308" }}>Price pending review</span>
+                      ) : (
+                        <span className="dash-badge dash-badge-blue">Unit ₹{item.price.toLocaleString()}</span>
+                      )}
                       {item.fileURL && <span className="dash-badge dash-badge-green">Custom file</span>}
                     </div>
                     <div style={{ marginTop: 16 }}>
@@ -246,7 +261,13 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                     </div>
                   </div>
                   <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between", gap: 16, borderLeft: "1px solid #111" }}>
-                    <div className="dash-cart-item-price">₹{(item.price * item.quantity).toLocaleString()}</div>
+                    <div className="dash-cart-item-price">
+                      {!item.designId && item.price === 0 ? (
+                        <span style={{ color: "#EAB308", fontSize: "0.75rem" }}>TBD</span>
+                      ) : (
+                        <>₹{(item.price * item.quantity).toLocaleString()}</>
+                      )}
+                    </div>
                     <button onClick={() => handleRemoveItem(item.id)} style={{
                       background: "none", border: "1px solid #333", borderRadius: 6,
                       color: "#666", cursor: "pointer", width: 28, height: 28,
@@ -345,7 +366,16 @@ export default function CartPage({ onNavigate }: CartPageProps) {
           <div className="dash-price-row"><span className="label">Subtotal</span><span className="value">₹{subtotal.toLocaleString()}</span></div>
           <div className="dash-price-row"><span className="label">Shipping</span><span className="value">₹{shipping}</span></div>
           <div className="dash-price-row"><span className="label">Tax (18%)</span><span className="value">₹{tax.toLocaleString()}</span></div>
-          <div className="dash-price-total"><span className="label">Total</span><span className="value">₹{total.toLocaleString()}</span></div>
+          {hasPendingPricing ? (
+            <>
+              <div className="dash-price-total"><span className="label">Total</span><span className="value" style={{ fontSize: "0.85rem", color: "#EAB308" }}>Pending Review</span></div>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: "#666", lineHeight: 1.6, margin: "12px 0 0" }}>
+                Your cart contains a custom design. Our team will review it and assign a price — you'll pay after the quote is confirmed.
+              </p>
+            </>
+          ) : (
+            <div className="dash-price-total"><span className="label">Total</span><span className="value">₹{total.toLocaleString()}</span></div>
+          )}
 
           {checkoutStep === "cart" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20 }}>
@@ -363,8 +393,8 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                 onClick={handlePlaceOrder}>
                 {placingOrder && <Loader2 size={14} style={{ animation: "spin 0.8s linear infinite" }} />}
                 {placingOrder
-                  ? (paymentMethod === "cod" ? "Placing Order..." : "Processing Payment...")
-                  : (paymentMethod === "cod" ? "Place Order (COD)" : `Pay ₹${total.toLocaleString()}`)}
+                  ? (hasPendingPricing ? "Submitting Request..." : paymentMethod === "cod" ? "Placing Order..." : "Processing Payment...")
+                  : (hasPendingPricing ? "Submit for Quote" : paymentMethod === "cod" ? "Place Order (COD)" : `Pay ₹${total.toLocaleString()}`)}
               </button>
               <button className="dash-btn-secondary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setCheckoutStep("cart")}>
                 Back to Cart

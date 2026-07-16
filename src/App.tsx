@@ -17,7 +17,6 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import TopBar from "@/components/dashboard/TopBar";
 import type { DashboardPage } from "@/components/dashboard/Sidebar";
 import HomePage from "@/components/dashboard/pages/HomePage";
-import DesignPage from "@/components/dashboard/pages/DesignPage";
 import UploadDesignPage from "@/components/dashboard/pages/UploadDesignPage";
 import OurDesignsPage from "@/components/dashboard/pages/OurDesignsPage";
 import CustomizeDesignPage from "@/components/dashboard/pages/CustomizeDesignPage";
@@ -109,7 +108,6 @@ function CustomerDashboard({ onLogout }: { onLogout: () => void }) {
   const renderPage = () => {
     switch (activePage) {
       case "home": return <HomePage onNavigate={handleNavigate} />;
-      case "design": return <DesignPage onNavigate={handleNavigate} />;
       case "upload": return <UploadDesignPage />;
       case "our-designs": return <OurDesignsPage onNavigate={handleNavigate} />;
       case "customize": return <CustomizeDesignPage onNavigate={handleNavigate} />;

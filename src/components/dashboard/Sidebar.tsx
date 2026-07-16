@@ -15,7 +15,6 @@ import { useCart } from "@/hooks/useCart";
 
 export type DashboardPage =
   | "home"
-  | "design"
   | "upload"
   | "our-designs"
   | "customize"
@@ -34,7 +33,6 @@ interface SidebarProps {
 
 const NAV_ITEMS: { page: DashboardPage; label: string; icon: React.ReactNode }[] = [
   { page: "home", label: "Home", icon: <Home size={18} /> },
-  { page: "design", label: "Design", icon: <Palette size={18} /> },
   { page: "upload", label: "Upload Design", icon: <UploadCloud size={18} /> },
   { page: "our-designs", label: "Our Designs", icon: <Grid3X3 size={18} /> },
   { page: "orders", label: "Orders", icon: <Package size={18} /> },

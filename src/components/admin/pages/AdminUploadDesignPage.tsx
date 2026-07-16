@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { UploadCloud, Image, File, X, Check, Loader2, Plus } from "lucide-react";
 import { createDesign } from "@/services/designs.service";
-import { uploadDesignImage, uploadDesignModel } from "@/services/storage.service";
+import { uploadDesignImage, uploadDesignModel } from "@/services/cloudinary.service";
 import { useAuth } from "@/hooks/useAuth";
 import { useDesigns } from "@/hooks/useDesigns";
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700;800&family=DM+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700;800&family=DM+Mono&family=Manrope:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -99,8 +99,14 @@
   padding: 0;
 }
 
-*:not(.trade-winds-regular):not(.trade-winds-regular *) {
+*:not(.trade-winds-regular):not(.trade-winds-regular *):not(.font-clean):not(.font-clean *) {
   font-family: "Fugaz One", sans-serif !important;
+}
+
+/* Escape hatch from the global Fugaz One rule — clean, professional body text */
+.font-clean,
+.font-clean * {
+  font-family: "Manrope", "Inter", system-ui, sans-serif;
 }
 
 html, body {

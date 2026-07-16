@@ -3,7 +3,7 @@ import { User, Mail, Phone, MapPin, Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrders } from "@/hooks/useOrders";
 import { updateUserProfile } from "@/services/auth.service";
-import { uploadProfilePhoto } from "@/services/storage.service";
+import { uploadProfilePhoto } from "@/services/cloudinary.service";
 
 export default function ProfilePage() {
   const { user, userProfile } = useAuth();

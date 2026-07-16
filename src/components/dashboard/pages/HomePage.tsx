@@ -128,10 +128,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               Design, customize, and order high quality 3D printed products easily.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button className="dash-btn-primary" onClick={() => onNavigate("design")} style={{ boxShadow: "0 4px 20px rgba(var(--accent-rgb), 0.2)" }}>
-                Start Designing
-              </button>
-              <button className="dash-btn-secondary" onClick={() => onNavigate("upload")}>
+              <button className="dash-btn-primary" onClick={() => onNavigate("upload")} style={{ boxShadow: "0 4px 20px rgba(var(--accent-rgb), 0.2)" }}>
                 Upload Design
               </button>
             </div>
@@ -179,13 +176,6 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </h3>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-          <div className="dash-quick-action dash-glass-card" onClick={() => onNavigate("design")}>
-            <div className="icon-wrap">
-              <Palette size={20} />
-            </div>
-            <span className="label">Create Design</span>
-            <span className="sublabel">Start from scratch</span>
-          </div>
           <div className="dash-quick-action dash-glass-card" onClick={() => onNavigate("upload")}>
             <div className="icon-wrap">
               <UploadCloud size={20} />

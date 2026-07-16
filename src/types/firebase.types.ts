@@ -213,3 +213,33 @@ export interface WebsiteSettingsDoc {
   activeBannerURL: string | null;
   updatedAt: Timestamp;
 }
+
+// ─── Coupons ────────────────────────────────────────────────
+export interface CouponDoc {
+  id: string;
+  code: string;
+  type: "Percent" | "Flat";
+  value: number;
+  minOrder: number;
+  usage: number;
+  limit: number;
+  status: "Active" | "Scheduled" | "Paused";
+  expires: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Coupons ────────────────────────────────────────────────
+export interface CouponDoc {
+  id: string;
+  code: string;
+  type: "Percent" | "Flat";
+  value: number;
+  minOrder: number;
+  usage: number;
+  limit: number;
+  status: "Active" | "Scheduled" | "Paused";
+  expires: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

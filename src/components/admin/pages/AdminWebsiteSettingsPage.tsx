@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Layout, Image as ImageIcon, Palette, Save, UploadCloud, X, Loader2 } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { updateWebsiteSettings } from "@/services/settings.service";
-import { uploadBannerImage } from "@/services/storage.service";
+import { uploadBannerImage } from "@/services/cloudinary.service";
 
 export default function AdminWebsiteSettingsPage() {
   const { websiteSettings, loading } = useSettings();

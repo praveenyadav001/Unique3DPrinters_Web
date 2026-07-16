@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { UploadCloud, File, X, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { upload3DFile, type UploadProgress } from "@/services/storage.service";
+import { upload3DFile, type UploadProgress } from "@/services/cloudinary.service";
 import ModelViewer from "@/components/ui/model-viewer";
 import * as THREE from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -32,31 +32,6 @@ export default function UploadDesignPage() {
     PLA: 1.24, ABS: 1.04, PETG: 1.27, TPU: 1.21, Resin: 1.1,
   };
 
-  // Base price per gram (INR)
-  const materialPricePerGram: Record<string, number> = {
-    PLA: 3.5, ABS: 3.8, PETG: 4.2, TPU: 5.5, Resin: 8.0,
-  };
-
-  const calculatePrice = () => {
-    if (!volumeCm3) return 0;
-    const density = materialDensities[material] || 1.24;
-    const ppg = materialPricePerGram[material] || 3.5;
-    const weight = volumeCm3 * density;
-    
-    // Scale factor based on chosen size (50% = 0.5 length, so volume scales by 0.5^3)
-    const scaleMap: Record<string, number> = { "50%": 0.5, "75%": 0.75, "100%": 1, "125%": 1.25, "150%": 1.5 };
-    const linearScale = scaleMap[size] || 1;
-    const volumeScale = Math.pow(linearScale, 3);
-    
-    const scaledWeight = weight * volumeScale;
-    
-    // Minimum price of ₹50
-    return Math.max(50, scaledWeight * ppg);
-  };
-
-  const basePrice = calculatePrice();
-  const totalPrice = basePrice * quantity;
-  
   // Rough print time estimation (1.5 hours per 50g)
   const calculatePrintTime = () => {
     if (!volumeCm3) return "0h 0m";
@@ -147,11 +122,11 @@ export default function UploadDesignPage() {
         color,
         size,
         quantity,
-        price: basePrice,
+        price: 0, // Custom upload — admin reviews and sets the price
         imageURL: "",
         fileURL: fileURL || "",
       });
-      alert("Added to cart!");
+      alert("Added to cart! Our team will review your design and set the price.");
     } catch (err) {
       console.error("Add to cart failed:", err);
     } finally {
@@ -266,15 +241,17 @@ export default function UploadDesignPage() {
 
           <div className="dash-price-panel">
             <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 16 }}>
-              Price Estimate
+              Pricing
             </h3>
-            <div className="dash-price-row"><span className="label">Material:</span><span className="value">₹{basePrice.toFixed(2)}</span></div>
             <div className="dash-price-row"><span className="label">Print Time:</span><span className="value">{printTime}</span></div>
             {volumeCm3 > 0 && (
               <div className="dash-price-row"><span className="label">Est. Weight (1x):</span><span className="value">{estimatedWeightGrams.toFixed(1)}g</span></div>
             )}
             <div className="dash-price-row"><span className="label">Quantity:</span><span className="value">{quantity}</span></div>
-            <div className="dash-price-total"><span className="label">Total</span><span className="value">₹{totalPrice.toFixed(2)}</span></div>
+            <div className="dash-price-total"><span className="label">Price</span><span className="value" style={{ fontSize: "0.85rem", color: "#EAB308" }}>Pending Review</span></div>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: "#666", lineHeight: 1.6, margin: "12px 0 0" }}>
+              Our team will review your design and assign a price. You'll see the final quote in your orders before payment.
+            </p>
             <button
               className="dash-btn-primary"
               style={{ width: "100%", marginTop: 20, justifyContent: "center", display: "flex", alignItems: "center", gap: 8 }}

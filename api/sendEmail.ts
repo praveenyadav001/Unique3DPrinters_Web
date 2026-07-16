@@ -1,7 +1,13 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Vercel securely reads this from its Environment Variables dashboard
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Configure the SMTP transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.SMTP_EMAIL, // Your Gmail address
+    pass: process.env.SMTP_PASSWORD, // Your Gmail App Password
+  },
+});
 
 export default async function handler(req: any, res: any) {
   // Only allow POST requests
@@ -46,19 +52,18 @@ export default async function handler(req: any, res: any) {
       </div>
     `;
 
-    // Send the email using Resend
-    // NOTE: 'onboarding@resend.dev' is for testing. Once you verify your domain on Resend,
-    // change this to something like 'noreply@yourdomain.com'
-    const data = await resend.emails.send({
-      from: 'Unique3DPrinters <onboarding@resend.dev>',
-      to: [customerEmail],
+    // Send the email using Nodemailer
+    const info = await transporter.sendMail({
+      from: `"Unique3DPrinters" <${process.env.SMTP_EMAIL}>`, // Sender address
+      to: customerEmail, // Receiver address
       subject: emailSubject,
       html: emailHtml,
     });
 
-    return res.status(200).json({ success: true, data });
-  } catch (error) {
+    return res.status(200).json({ success: true, messageId: info.messageId });
+
+  } catch (error: any) {
     console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 }
