@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { SquareArrowOutUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import PulsingBorder from "@/components/ui/pulsing-border";
+import { AnimatedBorder } from "@/components/ui/animated-border";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -89,28 +89,28 @@ function signedOffset(i: number, active: number, len: number, loop: boolean) {
 export function CardStack<T extends CardStackItem>({
   items,
   initialIndex = 0,
-  maxVisible = 7,
+  maxVisible = 5,
 
-  cardWidth = 520,
-  cardHeight = 320,
+  cardWidth = 480,
+  cardHeight = 280,
 
-  overlap = 0.48,
-  spreadDeg = 48,
+  overlap = 0.45,
+  spreadDeg = 40,
 
-  perspectivePx = 1100,
-  depthPx = 140,
-  tiltXDeg = 12,
+  perspectivePx = 1000,
+  depthPx = 120,
+  tiltXDeg = 10,
 
-  activeLiftPx = 22,
-  activeScale = 1.03,
-  inactiveScale = 0.94,
+  activeLiftPx = 18,
+  activeScale = 1.02,
+  inactiveScale = 0.95,
 
-  springStiffness = 280,
-  springDamping = 28,
+  springStiffness = 200,
+  springDamping = 25,
 
   loop = true,
   autoAdvance = false,
-  intervalMs = 2800,
+  intervalMs = 4000,
   pauseOnHover = true,
 
   showDots = true,
@@ -389,39 +389,23 @@ export function CardStack<T extends CardStackItem>({
 function DefaultFanCard({ item, active }: { item: CardStackItem; active: boolean }) {
   return (
     <div className="relative h-full w-full">
-      <PulsingBorder
+      <AnimatedBorder
         colors={active ? ["#00E5FF", "#FFFFFF", "#FF5C00"] : ["#00E5FF", "#FF5C00"]}
-        colorBack="#00000000"
-        roundness={0.08}
-        thickness={active ? 0.18 : 0.1}
-        softness={0.24}
-        intensity={active ? 0.72 : 0.45}
-        bloom={active ? 0.65 : 0.35}
-        spots={active ? 3 : 2}
-        spotSize={0.18}
-        pulse={0.38}
-        smoke={0.25}
-        smokeSize={0.32}
-        speed={active ? 0.58 : 0.34}
-        scale={1}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
+        thickness={active ? 2 : 1}
+        roundness={16}
+        intensity={active ? 0.7 : 0.4}
+        speed={active ? 1.2 : 0.6}
+        active={active}
       />
       {/* image */}
-      <div className="absolute inset-0 bg-[#0A0A0A] overflow-hidden">
+      <div className="absolute inset-0 bg-[#0A0A0A] overflow-hidden rounded-2xl">
         {item.imageSrc ? (
           <img
             src={item.imageSrc}
             alt={item.title}
             className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             draggable={false}
-            loading="eager"
+            loading="lazy"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-zinc-900 text-sm text-zinc-500">

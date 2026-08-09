@@ -86,29 +86,20 @@ export function AnimeNavBar({ items, className, defaultActive = "Home", logo, ri
                   )}
                 >
                   {isActive && (
-                    <motion.div
-                      className="absolute inset-0 rounded-2xl -z-10 overflow-hidden"
-                      initial={{ opacity: 0 }}
-                      animate={{ 
-                        opacity: [0.3, 0.5, 0.3],
-                        scale: [1, 1.02, 1]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
+                    <div
+                      className="absolute inset-0 rounded-2xl -z-10 overflow-hidden animate-nav-glow"
+                      aria-hidden="true"
                     >
                       <div className="absolute inset-0 bg-primary/25 rounded-2xl blur-md" />
                       <div className="absolute inset-[-4px] bg-primary/20 rounded-2xl blur-xl" />
                       <div className="absolute inset-[-8px] bg-primary/15 rounded-2xl blur-2xl" />
                       <div className="absolute inset-[-12px] bg-primary/5 rounded-2xl blur-3xl" />
-                      
-                      <div 
+
+                      <div
                         className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"
-                        style={{ animation: "shine 3s ease-in-out infinite" }}
+                        style={{ animation: "shine 4s ease-in-out infinite" }}
                       />
-                    </motion.div>
+                    </div>
                   )}
 
                   <Icon size={20} strokeWidth={2.5} className="relative z-10 flex-shrink-0" />
@@ -138,50 +129,54 @@ export function AnimeNavBar({ items, className, defaultActive = "Home", logo, ri
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     >
                       <div className="relative w-8 h-8">
-                        <motion.div 
-                          className="absolute w-8 h-8 bg-white rounded-full left-1/2 -translate-x-1/2"
-                          animate={
-                            hoveredTab ? {
-                              scale: [1, 1.1, 1],
-                              rotate: [0, -5, 5, 0],
-                              transition: { duration: 0.5, ease: "easeInOut" }
-                            } : {
-                              y: [0, -3, 0],
-                              transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                            }
-                          }
+                        <div
+                          className="absolute w-8 h-8 bg-white rounded-full left-1/2 -translate-x-1/2 animate-mascot-float"
+                          style={{
+                            animation: hoveredTab
+                              ? "mascot-bounce 0.5s ease-in-out"
+                              : "mascot-float 3s ease-in-out infinite",
+                          }}
                         >
-                          <motion.div 
+                          <div
                             className="absolute w-1.5 h-1.5 bg-black rounded-full"
-                            animate={
-                              hoveredTab ? { scaleY: [1, 0.2, 1], transition: { duration: 0.2, times: [0, 0.5, 1] } } : {}
-                            }
-                            style={{ left: '25%', top: '40%' }}
+                            style={{
+                              left: "25%",
+                              top: "40%",
+                              animation: hoveredTab ? "mascot-blink 0.2s ease-in-out" : "none",
+                            }}
                           />
-                          <motion.div 
+                          <div
                             className="absolute w-1.5 h-1.5 bg-black rounded-full"
-                            animate={
-                              hoveredTab ? { scaleY: [1, 0.2, 1], transition: { duration: 0.2, times: [0, 0.5, 1] } } : {}
-                            }
-                            style={{ right: '25%', top: '40%' }}
+                            style={{
+                              right: "25%",
+                              top: "40%",
+                              animation: hoveredTab ? "mascot-blink 0.2s ease-in-out" : "none",
+                            }}
                           />
-                          <motion.div 
+                          <div
                             className="absolute w-1.5 h-1 bg-pink-300 rounded-full"
-                            animate={{ opacity: hoveredTab ? 0.8 : 0.6 }}
-                            style={{ left: '15%', top: '55%' }}
+                            style={{
+                              left: "15%",
+                              top: "55%",
+                              opacity: hoveredTab ? 0.8 : 0.6,
+                            }}
                           />
-                          <motion.div 
+                          <div
                             className="absolute w-1.5 h-1 bg-pink-300 rounded-full"
-                            animate={{ opacity: hoveredTab ? 0.8 : 0.6 }}
-                            style={{ right: '15%', top: '55%' }}
+                            style={{
+                              right: "15%",
+                              top: "55%",
+                              opacity: hoveredTab ? 0.8 : 0.6,
+                            }}
                           />
-                          
-                          <motion.div 
+
+                          <div
                             className="absolute w-3 h-1.5 border-b-2 border-black rounded-full"
-                            animate={
-                              hoveredTab ? { scaleY: 1.5, y: -1 } : { scaleY: 1, y: 0 }
-                            }
-                            style={{ left: '30%', top: '60%' }}
+                            style={{
+                              left: "30%",
+                              top: "60%",
+                              transform: hoveredTab ? "scaleY(1.5) translateY(-4px)" : "none",
+                            }}
                           />
                           <AnimatePresence>
                             {hoveredTab && (
@@ -206,21 +201,17 @@ export function AnimeNavBar({ items, className, defaultActive = "Home", logo, ri
                               </>
                             )}
                           </AnimatePresence>
-                        </motion.div>
-                        <motion.div
+                        </div>
+                        <div
                           className="absolute -bottom-0.5 left-1/2 w-3 h-3 -translate-x-1/2"
-                          animate={
-                            hoveredTab ? {
-                              y: [0, -4, 0],
-                              transition: { duration: 0.3, repeat: Infinity, repeatType: "reverse" }
-                            } : {
-                              y: [0, 2, 0],
-                              transition: { duration: 1, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
-                            }
-                          }
+                          style={{
+                            animation: hoveredTab
+                              ? "mascot-triangle-bounce 0.3s ease-in-out infinite alternate"
+                              : "mascot-triangle-float 2s ease-in-out infinite",
+                          }}
                         >
                           <div className="w-full h-full bg-white rotate-45 transform origin-center" />
-                        </motion.div>
+                        </div>
                       </div>
                     </motion.div>
                   )}

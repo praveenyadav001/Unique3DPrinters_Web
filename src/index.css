@@ -372,6 +372,41 @@ html, body {
   100% { transform: translateY(-100%); }
 }
 
+/* Mascot animations (CSS-based for performance) */
+@keyframes mascot-float {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -6px); }
+}
+@keyframes mascot-bounce {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  50% { transform: translate(-50%, -8px) scale(1.1); }
+}
+@keyframes mascot-blink {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.2); }
+}
+@keyframes mascot-triangle-float {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 4px); }
+}
+@keyframes mascot-triangle-bounce {
+  0% { transform: translate(-50%, 0); }
+  100% { transform: translate(-50%, -8px); }
+}
+
+.animate-mascot-float {
+  animation: mascot-float 3s ease-in-out infinite;
+}
+
+/* Nav glow animation */
+@keyframes nav-glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+.animate-nav-glow {
+  animation: nav-glow-pulse 3s ease-in-out infinite;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }

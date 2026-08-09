@@ -9,8 +9,6 @@ import { CardStack, CardStackItem } from "../ui/card-stack";
 import { TestimonialsSection, TestimonialItem, TestimonialStat } from "../ui/testimonials-columns-1";
 import { HowItWorksSection } from "./HowItWorksSection";
 import { motion } from "framer-motion";
-import { STLUploader } from "./STLUploader";
-import heroVideo from "@/assets/background video/slight_motion_effect_video_for.mp4";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -36,12 +34,10 @@ const CARD_STACK_ITEMS: CardStackItem[] = CATEGORIES.map((cat, i) => ({
 
 const NAV_ITEMS = [
   { name: "Home", url: "#", icon: Home },
-  { name: "Design", url: "#", icon: PenTool },
-  { name: "Upload Design", url: "#", icon: UploadCloud },
-  { name: "Our Designs", url: "#", icon: Box },
-  { name: "Orders", url: "#", icon: ShoppingCart },
-  { name: "Pricing", url: "#", icon: CreditCard },
-  { name: "Contact", url: "#", icon: Mail },
+  { name: "Our Designs", url: "/designs", icon: Box },
+  { name: "Upload Design", url: "/upload", icon: UploadCloud },
+  { name: "Orders", url: "/orders", icon: ShoppingCart },
+  { name: "Contact", url: "/contact", icon: Mail },
 ];
 
 const TESTIMONIALS: TestimonialItem[] = [
@@ -186,15 +182,23 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             </button>
           </div>
 
-          <video
+          <motion.video
+            key="hero-video"
+            src="/hero-optimized.mp4"
+            initial={{ scale: 1 }}
+            animate={{ scale: 1.05 }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "linear"
+            }}
             autoPlay
             loop
             muted
             playsInline
             className="absolute inset-0 w-full h-full object-cover z-0"
-          >
-            <source src={heroVideo} type="video/mp4" />
-          </video>
+          />
           <div className="absolute inset-0 z-0" style={{ background: "rgba(0,0,0,0.6)" }} />
           <div className="hero-mesh-bg z-0" />
 
@@ -244,9 +248,6 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             </motion.button>
           </motion.div>
         </section>
-
-        {/* ═══ STL UPLOADER ════════════════════════════════ */}
-        <STLUploader />
 
         {/* ═══ HOW IT WORKS REDESIGN ═════════════════════ */}
         <HowItWorksSection />
@@ -300,9 +301,12 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               items={CARD_STACK_ITEMS}
               initialIndex={0}
               autoAdvance
-              intervalMs={2500}
+              intervalMs={4000}
               pauseOnHover
               showDots
+              maxVisible={5}
+              cardWidth={480}
+              cardHeight={280}
             />
           </div>
         </motion.section>
@@ -331,15 +335,20 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <div className="landing-footer-contact">
                 <div className="landing-footer-contact-item">
                   <MapPin size={14} />
-                  <span>123 Maker Street, Tech City,<br />Bangalore, India - 560001</span>
+                  <span>KALAVA GATTU, Tetali,<br />Andhra Pradesh 534218</span>
                 </div>
                 <div className="landing-footer-contact-item">
                   <Phone size={14} />
-                  <span>+91 98765 43210</span>
+                  <span>+91 84668 00143 (Open 24 hours)</span>
                 </div>
                 <div className="landing-footer-contact-item">
                   <Mail size={14} />
-                  <span>support@unique3dprinters.com</span>
+                  <span>unique3dprinting@gmail.com</span>
+                </div>
+                <div className="landing-footer-contact-item" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: '#FBBF24', fontSize: '1.2rem' }}>★</span>
+                  <span style={{ fontWeight: 'bold', color: '#fff' }}>5.0</span>
+                  <span style={{ color: '#aaa', fontSize: '0.85rem' }}>(2 Google Reviews)</span>
                 </div>
               </div>
             </div>
@@ -348,10 +357,17 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             <div>
               <div className="landing-footer-section-title">Quick Links</div>
               <div className="landing-footer-links">
-                {["Home", "Our Designs", "Categories", "Pricing", "About Us", "Contact Us"].map((l) => (
-                  <span key={l} className="landing-footer-link">
-                    <ChevronRight size={10} /> {l}
-                  </span>
+                {[
+                  { name: "Home", url: "/" },
+                  { name: "Our Designs", url: "/designs" },
+                  { name: "Categories", url: "/categories" },
+                  { name: "Pricing", url: "/pricing" },
+                  { name: "About Us", url: "/about" },
+                  { name: "Contact Us", url: "/contact" }
+                ].map((l) => (
+                  <a key={l.name} href={l.url} className="landing-footer-link" style={{ textDecoration: 'none' }}>
+                    <ChevronRight size={10} /> {l.name}
+                  </a>
                 ))}
               </div>
             </div>
@@ -360,10 +376,16 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             <div>
               <div className="landing-footer-section-title">Orders & Support</div>
               <div className="landing-footer-links">
-                {["Track Order", "Returns & Refunds", "Shipping Policy", "FAQs", "Help Center"].map((l) => (
-                  <span key={l} className="landing-footer-link">
-                    <ChevronRight size={10} /> {l}
-                  </span>
+                {[
+                  { name: "Track Order", url: "/track-order" },
+                  { name: "Returns & Refunds", url: "/returns" },
+                  { name: "Shipping Policy", url: "/shipping" },
+                  { name: "FAQs", url: "/faqs" },
+                  { name: "Help Center", url: "/help" }
+                ].map((l) => (
+                  <a key={l.name} href={l.url} className="landing-footer-link" style={{ textDecoration: 'none' }}>
+                    <ChevronRight size={10} /> {l.name}
+                  </a>
                 ))}
               </div>
             </div>

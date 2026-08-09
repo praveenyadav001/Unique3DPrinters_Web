@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BadgeCheck, MapPin, Quote, Star } from "lucide-react";
-import PulsingBorder from "@/components/ui/pulsing-border";
+import { AnimatedBorder } from "@/components/ui/animated-border";
 
 export interface TestimonialItem {
   text: string;
@@ -22,29 +22,13 @@ export interface TestimonialStat {
 
 const TestimonialCard = ({ text, image, name, role, location, rating, featured }: TestimonialItem) => (
   <div className={`tcard font-clean w-full ${featured ? "featured" : ""}`}>
-    <PulsingBorder
+    <AnimatedBorder
       colors={featured ? ["#00E5FF", "#FFFFFF", "#FF5C00"] : ["#00E5FF", "#FF5C00"]}
-      colorBack="#00000000"
-      roundness={0.1}
-      thickness={featured ? 0.13 : 0.08}
-      softness={0.26}
+      thickness={featured ? 2 : 1}
+      roundness={20}
       intensity={featured ? 0.5 : 0.3}
-      bloom={featured ? 0.45 : 0.24}
-      spots={featured ? 3 : 2}
-      spotSize={0.16}
-      pulse={0.28}
-      smoke={0.16}
-      smokeSize={0.3}
-      speed={featured ? 0.38 : 0.26}
-      scale={1}
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-        zIndex: 1,
-      }}
+      speed={featured ? 0.8 : 0.5}
+      active={featured}
     />
 
     {rating != null && (
